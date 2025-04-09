@@ -1,0 +1,2 @@
+D:/4th Semester/Mobile app/Semester project/my app project/android/app/.cxx/Debug/292u5lb6/armeabi-v7a/CMakeFiles/edit_cache.dir
+D:/4th Semester/Mobile app/Semester project/my app project/android/app/.cxx/Debug/292u5lb6/armeabi-v7a/CMakeFiles/rebuild_cache.dir
