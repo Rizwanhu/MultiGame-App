@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'login_signup.dart';  // Import the login_signup.dart file
+import 'logo_screen.dart'; // Import the SplashScreen
+//hello world
 
 void main() {
   runApp(MyApp());
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),  
+      home: SplashScreen(),  // Start with SplashScreen
     );
   }
 }
