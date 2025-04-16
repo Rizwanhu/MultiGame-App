@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'login_signup.dart';  // Import the login_signup.dart file
+import 'logo_screen.dart'; // Import the SplashScreen
 //hello world
+
 void main() {
   runApp(MyApp());
 }
@@ -8,9 +9,6 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
-  
-  // Hello THIS IS RIZWAN REPOOO
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -18,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      // home: LoginPage(),  // Calling the LoginSignupScreen from login_signup.dart
+      home: SplashScreen(),  // Start with SplashScreen
     );
   }
 }
