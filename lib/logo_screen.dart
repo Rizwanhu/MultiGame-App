@@ -11,7 +11,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 10), () {
+    Timer(Duration(seconds: 5), () {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
       body: SizedBox.expand(
         child: Image.asset(
           'assets/images/logo.png', // use your actual asset path
-          fit: BoxFit.fitHeight,   // Makes the image fill the screen
+          fit: BoxFit.fill,   // Makes the image fill the screen
         ),
       ),
     );
