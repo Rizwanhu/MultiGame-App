@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'logo_screen.dart'; // Import the SplashScreen
 import 'main_screen.dart';
 //hello world
+import 'Leaderboard.dart'; // Import the LeaderboardPage
 
 void main() {
   runApp(MyApp());

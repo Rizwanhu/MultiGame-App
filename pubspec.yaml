@@ -57,6 +57,7 @@ flutter:
     - assets/images/darts.png
     - assets/images/snake.png
     - assets/images/tic-tac-toe.png
+    - assets/images/background_picture.jpg
 
 
   # The following line ensures that the Material Icons font is
