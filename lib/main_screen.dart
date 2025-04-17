@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'Leaderboard.dart';
 
 void main() {
   runApp(MultiGameApp());
@@ -127,7 +128,7 @@ class _MainScreenState extends State<MainScreen> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => LeaderboardScreen()),
+                    MaterialPageRoute(builder: (context) => LeaderboardPage()),
                   );
                 },
                 child: Text("Leaderboard"),
@@ -152,21 +153,6 @@ class BlankScreen extends StatelessWidget {
       body: Center(
         child: Text(
           "Blank screen for $gameName",
-          style: TextStyle(fontSize: 20),
-        ),
-      ),
-    );
-  }
-}
-
-class LeaderboardScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Leaderboard")),
-      body: Center(
-        child: Text(
-          "Leaderboard Screen",
           style: TextStyle(fontSize: 20),
         ),
       ),
