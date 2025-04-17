@@ -53,6 +53,10 @@ dev_dependencies:
 flutter:
   assets:
     - assets/images/logo.png
+    - assets/images/pingpong.png
+    - assets/images/darts.png
+    - assets/images/snake.png
+    - assets/images/tic-tac-toe.png
 
 
   # The following line ensures that the Material Icons font is

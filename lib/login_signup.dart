@@ -1,4 +1,6 @@
+import 'package:app/main_screen.dart';
 import 'package:flutter/material.dart';
+import 'main_screen.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -68,7 +70,8 @@ class LoginPage extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const Placeholder(), // Replace with your next screen
+                      builder: (context) =>
+                          MainScreen(), // Replace with your next screen
                     ),
                   );
                 },

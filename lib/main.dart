@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'logo_screen.dart'; // Import the SplashScreen
+import 'main_screen.dart';
 //hello world
 
 void main() {
@@ -16,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: SplashScreen(),  // Start with SplashScreen
+      home: SplashScreen(), // Start with SplashScreen
     );
   }
 }
