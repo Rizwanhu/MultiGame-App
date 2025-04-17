@@ -25,7 +25,7 @@ class _SplashScreenState extends State<SplashScreen> {
       body: SizedBox.expand(
         child: Image.asset(
           'assets/images/logo.png', // use your actual asset path
-          fit: BoxFit.cover,   // Makes the image fill the screen
+          fit: BoxFit.fitHeight,   // Makes the image fill the screen
         ),
       ),
     );
