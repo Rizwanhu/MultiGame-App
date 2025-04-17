@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Leaderboard.dart';
-
+import 'gameDetail.dart';
 void main() {
   runApp(MultiGameApp());
 }
@@ -90,7 +90,7 @@ class _MainScreenState extends State<MainScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => BlankScreen(gameName: game["name"]),
+                          builder: (context) => GameDetailScreen(gameName: game["name"],gameImage: game["image"],),
                         ),
                       );
                     },

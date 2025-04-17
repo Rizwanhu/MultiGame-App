@@ -3,6 +3,11 @@ import 'logo_screen.dart'; // Import the SplashScreen
 import 'main_screen.dart';
 import 'Leaderboard.dart'; // Import the LeaderboardPage
 
+
+
+
+
+
 void main() {
   runApp(MyApp());
 }
