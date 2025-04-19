@@ -24,8 +24,8 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: SizedBox.expand(
         child: Image.asset(
-          'assets/images/logo.png', // use your actual asset path
-          fit: BoxFit.fill, // Makes the image fill the screen
+          'assets/images/splash2.jpg', // use your actual asset path
+          fit: BoxFit.cover, // Makes the image fill the screen
         ),
       ),
     );

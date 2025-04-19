@@ -76,7 +76,29 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Multigame App"),
+        automaticallyImplyLeading: false,
+        toolbarHeight: 45, // Decreased height
+        title: Text(
+          "Multigame App",
+          style: TextStyle(
+            fontSize: 28,
+            fontFamily: 'LuckiestGuy',
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+            letterSpacing: 2.0, // Added letter spacing
+            shadows: [
+              Shadow(
+                color: Colors.white,
+                blurRadius: 5,
+                offset: Offset(2, 2),
+              ),
+            ],
+            decoration: TextDecoration.none,
+            decorationColor: Colors.yellow,
+            decorationStyle: TextDecorationStyle.solid,
+            decorationThickness: 6,
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.settings),

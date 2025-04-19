@@ -19,9 +19,10 @@ class GameCard extends StatelessWidget {
         border: Border.all(color: Colors.grey.shade800, width: 7),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
-            blurRadius: 10,
-            offset: const Offset(4, 6),
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 15,
+            spreadRadius: 2,
+            offset: const Offset(6, 8),
           ),
         ],
       ),
