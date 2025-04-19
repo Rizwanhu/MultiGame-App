@@ -1,7 +1,17 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'Bottombar.dart';
 
-class LeaderboardPage extends StatelessWidget {
+class LeaderboardPage extends StatefulWidget {
+  final int initialIndex;
+  
+  LeaderboardPage({this.initialIndex = 1});
+  
+  @override
+  _LeaderboardPageState createState() => _LeaderboardPageState();
+}
+
+class _LeaderboardPageState extends State<LeaderboardPage> {
   final List<Map<String, dynamic>> scores = [
     {
       'name': 'Vic',
@@ -39,6 +49,17 @@ class LeaderboardPage extends StatelessWidget {
       'image': 'https://i.pravatar.cc/100?img=7',
     },
   ];
+
+  late int currentIndex;
+
+  List<IconData> icons = [Icons.home, Icons.bar_chart, Icons.person];
+  List<String> labels = ["Home", "Leaderboard", "Profile"];
+
+  @override
+  void initState() {
+    super.initState();
+    currentIndex = widget.initialIndex;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -140,26 +161,17 @@ class LeaderboardPage extends StatelessWidget {
           )
         ],
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text("Home"),
-              ),
-              ElevatedButton(
-                onPressed: () {},
-                child: Text("Leaderboard"),
-              ),
-            ],
-          ),
-        ),
+      bottomNavigationBar: CustomBottomBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pop(context, index);  // Pass back selected index
+          } else {
+            setState(() {
+              currentIndex = index;
+            });
+          }
+        },
       ),
     );
   }

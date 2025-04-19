@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'Leaderboard.dart';
 import 'gameDetail.dart';
+import 'Bottombar.dart';  // Add this import
+
 void main() {
   runApp(MultiGameApp());
 }
@@ -21,6 +23,10 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  int currentIndex = 0;
+  List<IconData> icons = [Icons.home, Icons.bar_chart, Icons.person];
+  List<String> labels = ["Home", "Leaderboard", "Profile"];
+
   void openDrawer() {
     showModalBottomSheet(
       context: context,
@@ -115,29 +121,27 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: () {},
-                child: Text("Home"),
+      bottomNavigationBar: CustomBottomBar(
+        currentIndex: currentIndex,
+        onTap: (index) async {
+          if (index == 1) {
+            final returnedIndex = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LeaderboardPage(initialIndex: index),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LeaderboardPage()),
-                  );
-                },
-                child: Text("Leaderboard"),
-              ),
-            ],
-          ),
-        ),
+            );
+            if (returnedIndex != null) {
+              setState(() {
+                currentIndex = returnedIndex;
+              });
+            }
+          } else {
+            setState(() {
+              currentIndex = index;
+            });
+          }
+        },
       ),
     );
   }
