@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
-import 'logo_screen.dart'; 
+import 'logo_screen.dart';
 import 'main_screen.dart';
-import 'Leaderboard.dart'; 
-
-
-
-
-
+import 'Leaderboard.dart';
+import 'register.dart';
 
 void main() {
   runApp(MyApp());

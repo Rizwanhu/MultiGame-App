@@ -1,6 +1,7 @@
 import 'package:app/main_screen.dart';
 import 'package:flutter/material.dart';
 import 'main_screen.dart';
+import 'register.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({super.key});
@@ -89,9 +90,11 @@ class LoginPage extends StatelessWidget {
               children: [
                 const Text("Not a member? "),
                 GestureDetector(
-                  onTap: () {
-                    // Navigate to Sign Up Page
-                  },
+                 onTap: () {
+                Navigator.push(
+               context,MaterialPageRoute(builder: (context) => const SignUpPage()),
+                );
+                 },
                   child: const Text(
                     "Sign up now",
                     style: TextStyle(
