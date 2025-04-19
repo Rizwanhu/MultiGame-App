@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'Leaderboard.dart';
 import 'gameDetail.dart';
 import 'Bottombar.dart';  // Add this import
+import 'GameCard.dart';  // Add this import
 
 void main() {
   runApp(MultiGameApp());
@@ -90,29 +91,22 @@ class _MainScreenState extends State<MainScreen> {
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1,
                 children: games.map((game) {
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => GameDetailScreen(gameName: game["name"],gameImage: game["image"],),
+                          builder: (context) => GameDetailScreen(gameName: game["name"], gameImage: game["image"]),
                         ),
                       );
                     },
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(game["image"], width: 80, height: 80),
-                          SizedBox(height: 10),
-                          Text(game["name"], style: TextStyle(fontWeight: FontWeight.bold))
-                        ],
-                      ),
+                    child: GameCard(
+                      gameName: game["name"],
+                      imagePath: game["image"],
                     ),
                   );
                 }).toList(),
