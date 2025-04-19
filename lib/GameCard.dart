@@ -16,31 +16,37 @@ class GameCard extends StatelessWidget {
           fit: BoxFit.cover,
         ),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade800, width: 7), // Increased border width
+        border: Border.all(color: Colors.grey.shade800, width: 7),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3), // Increased opacity
-            blurRadius: 10, // Increased blur
-            offset: const Offset(4, 6), // Increased offset
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(4, 6),
           ),
         ],
       ),
-      child: Center(  // Changed to Center
-        child: Transform.translate(
-          offset: const Offset(0, 9),  // Move text up by 20 pixels
+      child: Align(
+        alignment: Alignment.bottomLeft,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 5, bottom: 20),
           child: Text(
-            gameName.toUpperCase(),  // Capitalize text
-            style: const TextStyle(
-              fontSize: 20,  // Increased font size
+            gameName.toUpperCase(),
+            style: TextStyle(
+              fontSize: 24,
               fontWeight: FontWeight.bold,
+              fontFamily: 'LuckiestGuy',
               color: Colors.white,
               letterSpacing: 0.5,
-              shadows: [  // Added text shadow for better visibility
+              shadows: [
                 Shadow(
                   color: Colors.black,
                   blurRadius: 4,
                 ),
               ],
+              decoration: TextDecoration.none,
+              decorationColor: Colors.grey.withOpacity(0.3),
+              decorationStyle: TextDecorationStyle.solid,
+              decorationThickness: 3,
             ),
           ),
         ),
