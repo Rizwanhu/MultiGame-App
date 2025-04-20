@@ -31,33 +31,66 @@ class _MainScreenState extends State<MainScreen> {
   int currentIndex = 0;
   List<IconData> icons = [Icons.home, Icons.bar_chart, Icons.person];
   List<String> labels = ["Home", "Leaderboard", "Profile"];
+  double volumeValue = 50.0;
+  bool isMusicOn = true;
 
   void openDrawer() {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return Container(
-          padding: EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text("Settings", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setModalState) {
+            return Container(
+              padding: EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("Volume"),
-                  Slider(value: 50, min: 0, max: 100, onChanged: (val) {}),
+                  Text("Settings", 
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Volume"),
+                      Expanded(
+                        child: Slider(
+                          value: volumeValue,
+                          min: 0,
+                          max: 100,
+                          onChanged: (val) {
+                            setModalState(() {
+                              setState(() {
+                                volumeValue = val;
+                              });
+                            });
+                            // TODO: Implement volume control logic here
+                          },
+                        ),
+                      ),
+                      Text("${volumeValue.round()}"),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Music"),
+                      Switch(
+                        value: isMusicOn,
+                        onChanged: (val) {
+                          setModalState(() {
+                            setState(() {
+                              isMusicOn = val;
+                            });
+                          });
+                          // TODO: Implement music toggle logic here
+                        },
+                      ),
+                    ],
+                  ),
                 ],
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Music"),
-                  Switch(value: true, onChanged: (val) {}),
-                ],
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
@@ -82,32 +115,52 @@ class _MainScreenState extends State<MainScreen> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         toolbarHeight: 45, // Decreased height
-        title: Text(
-          "Multigame App",
-          style: TextStyle(
-            fontSize: 28,
-            fontFamily: 'LuckiestGuy',
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-            letterSpacing: 2.0, // Added letter spacing
-            shadows: [
-              Shadow(
-                color: Colors.white,
-                blurRadius: 5,
-                offset: Offset(2, 2),
+        title: Row(
+          children: [
+            // Image.asset(
+            //   'assets/images/giphy.gif',
+            //   width: 30,
+            //   height: 40,
+            //   fit: BoxFit.contain,
+            // ),
+            // SizedBox(width: 8),
+            Text(
+              "Multigame App",
+              style: TextStyle(
+                fontSize: 28,
+                fontFamily: 'LuckiestGuy',
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+                letterSpacing: 2.0, // Added letter spacing
+                shadows: [
+                  Shadow(
+                    color: Colors.white,
+                    blurRadius: 5,
+                    offset: Offset(2, 2),
+                  ),
+                ],
+                decoration: TextDecoration.none,
+                decorationColor: Colors.yellow,
+                decorationStyle: TextDecorationStyle.solid,
+                decorationThickness: 6,
               ),
-            ],
-            decoration: TextDecoration.none,
-            decorationColor: Colors.yellow,
-            decorationStyle: TextDecorationStyle.solid,
-            decorationThickness: 6,
-          ),
+            ),
+          ],
         ),
         actions: [
           IconButton(
             icon: Icon(Icons.settings),
             onPressed: openDrawer,
-          )
+          ),
+          Padding(
+            padding: const EdgeInsets.only(right: 2.0),
+            child: Image.asset(
+              'assets/images/robot.gif',
+              width: 50,
+              height: 40,
+              fit: BoxFit.contain,
+            ),
+          ),
         ],
       ),
       body: SingleChildScrollView(
