@@ -4,6 +4,7 @@ import 'gameDetail.dart';
 import 'Bottombar.dart';  // Add this import
 import 'GameCard.dart';  // Add this import
 import 'profile_screen.dart';  // Add this import
+import 'media_grid.dart';  // Add this import
 
 
 void main() {
@@ -112,6 +113,8 @@ class _MainScreenState extends State<MainScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
+            const DiagonalMediaGrid(),
+            const SizedBox(height: 16),  // Add spacing
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
