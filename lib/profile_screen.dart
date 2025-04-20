@@ -3,10 +3,11 @@ import 'game_detail_screen.dart';
 import 'Bottombar.dart';
 import 'main_screen.dart';
 import 'Leaderboard.dart';
+import 'ads_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int initialIndex;
-  const ProfileScreen({this.initialIndex = 2, super.key});
+  const ProfileScreen({this.initialIndex = 3, super.key});
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -129,6 +130,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => LeaderboardPage()),
+                (route) => false,
+              );
+            } else if (index == 2) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => AdsScreen()),
                 (route) => false,
               );
             }

@@ -5,6 +5,7 @@ import 'Bottombar.dart';  // Add this import
 import 'GameCard.dart';  // Add this import
 import 'profile_screen.dart';  // Add this import
 import 'media_grid.dart';  // Add this import
+import 'ads_screen.dart';
 
 
 void main() {
@@ -158,6 +159,14 @@ class _MainScreenState extends State<MainScreen> {
               (route) => false,
             );
           } else if (index == 2) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AdsScreen(initialIndex: index),
+              ),
+              (route) => false,
+            );
+          } else if (index == 3) {
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
