@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'ads_screen.dart';
+// import 'ads_screen.dart';
 
 class CustomBottomBar extends StatelessWidget {
   final int currentIndex;

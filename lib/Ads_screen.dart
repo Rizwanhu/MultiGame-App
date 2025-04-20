@@ -73,13 +73,14 @@ class _AdsScreenState extends State<AdsScreen> {
                         width: 120,
                         height: 20,
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.2),
+                          color: Colors.blue.withOpacity(0.5), // Increased opacity
                           borderRadius: BorderRadius.circular(50),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.blueAccent.withOpacity(0.2),
-                              blurRadius: 15,
-                              spreadRadius: 1,
+                              color: Colors.blueAccent.withOpacity(0.5), // Increased opacity
+                              blurRadius: 20, // Increased blur
+                              spreadRadius: 4, // Increased spread
+                              offset: Offset(0, 2), // Added offset
                             )
                           ],
                         ),
@@ -87,7 +88,7 @@ class _AdsScreenState extends State<AdsScreen> {
                     ),
                     // Main image
                     Image.asset(
-                      'assets/images/squid1.jpg',
+                      'assets/images/trophy.gif',
                       width: 130,
                       height: 130,
                       fit: BoxFit.contain,
@@ -97,7 +98,7 @@ class _AdsScreenState extends State<AdsScreen> {
                 Column(
                   children: [
                     Text(
-                      'Cash',
+                      'Watch Ads',
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,

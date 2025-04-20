@@ -68,7 +68,9 @@ flutter:
     - assets/images/splash1.png
     - assets/images/splash2.jpg
     - assets/images/coin.gif
-    - assets/images/
+    - assets/images/trophy.gif
+    - assets/images/island.jpg
+    - assets/images/squid1.jpg
 
   # Add fonts section
   fonts:
