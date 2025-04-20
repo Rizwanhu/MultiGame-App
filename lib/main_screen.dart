@@ -3,6 +3,8 @@ import 'Leaderboard.dart';
 import 'gameDetail.dart';
 import 'Bottombar.dart';  // Add this import
 import 'GameCard.dart';  // Add this import
+import 'profile_screen.dart';  // Add this import
+
 
 void main() {
   runApp(MultiGameApp());
@@ -139,19 +141,23 @@ class _MainScreenState extends State<MainScreen> {
       ),
       bottomNavigationBar: CustomBottomBar(
         currentIndex: currentIndex,
-        onTap: (index) async {
+        onTap: (index) {
           if (index == 1) {
-            final returnedIndex = await Navigator.push(
+            Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(
                 builder: (context) => LeaderboardPage(initialIndex: index),
               ),
+              (route) => false,
             );
-            if (returnedIndex != null) {
-              setState(() {
-                currentIndex = returnedIndex;
-              });
-            }
+          } else if (index == 2) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(),
+              ),
+              (route) => false,
+            );
           } else {
             setState(() {
               currentIndex = index;
