@@ -109,14 +109,15 @@ class _MainScreenState extends State<MainScreen> {
           )
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
         child: Column(
           children: [
             const DiagonalMediaGrid(),
-            const SizedBox(height: 16),  // Add spacing
-            Expanded(
+            Padding(
+              padding: const EdgeInsets.all(16.0),
               child: GridView.count(
+                physics: NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
                 crossAxisCount: 2,
                 crossAxisSpacing: 16,
                 mainAxisSpacing: 16,
@@ -127,7 +128,10 @@ class _MainScreenState extends State<MainScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => GameDetailScreen(gameName: game["name"], gameImage: game["image"]),
+                          builder: (context) => GameDetailScreen(
+                            gameName: game["name"],
+                            gameImage: game["image"],
+                          ),
                         ),
                       );
                     },
