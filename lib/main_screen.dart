@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'Leaderboard.dart';
 import 'gameDetail.dart';
+import 'Bottombar.dart';  // Add this import
+import 'GameCard.dart';  // Add this import
+import 'profile_screen.dart';  // Add this import
+
+
 void main() {
   runApp(MultiGameApp());
 }
@@ -21,6 +26,10 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  int currentIndex = 0;
+  List<IconData> icons = [Icons.home, Icons.bar_chart, Icons.person];
+  List<String> labels = ["Home", "Leaderboard", "Profile"];
+
   void openDrawer() {
     showModalBottomSheet(
       context: context,
@@ -69,7 +78,29 @@ class _MainScreenState extends State<MainScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Multigame App"),
+        automaticallyImplyLeading: false,
+        toolbarHeight: 45, // Decreased height
+        title: Text(
+          "Multigame App",
+          style: TextStyle(
+            fontSize: 28,
+            fontFamily: 'LuckiestGuy',
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
+            letterSpacing: 2.0, // Added letter spacing
+            shadows: [
+              Shadow(
+                color: Colors.white,
+                blurRadius: 5,
+                offset: Offset(2, 2),
+              ),
+            ],
+            decoration: TextDecoration.none,
+            decorationColor: Colors.yellow,
+            decorationStyle: TextDecorationStyle.solid,
+            decorationThickness: 6,
+          ),
+        ),
         actions: [
           IconButton(
             icon: Icon(Icons.settings),
@@ -84,29 +115,22 @@ class _MainScreenState extends State<MainScreen> {
             Expanded(
               child: GridView.count(
                 crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                childAspectRatio: 1,
                 children: games.map((game) {
                   return GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => GameDetailScreen(gameName: game["name"],gameImage: game["image"],),
+                          builder: (context) => GameDetailScreen(gameName: game["name"], gameImage: game["image"]),
                         ),
                       );
                     },
-                    child: Card(
-                      elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Image.asset(game["image"], width: 80, height: 80),
-                          SizedBox(height: 10),
-                          Text(game["name"], style: TextStyle(fontWeight: FontWeight.bold))
-                        ],
-                      ),
+                    child: GameCard(
+                      gameName: game["name"],
+                      imagePath: game["image"],
                     ),
                   );
                 }).toList(),
@@ -115,29 +139,31 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 10),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              ElevatedButton(
-                onPressed: () {},
-                child: Text("Home"),
+      bottomNavigationBar: CustomBottomBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          if (index == 1) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => LeaderboardPage(initialIndex: index),
               ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LeaderboardPage()),
-                  );
-                },
-                child: Text("Leaderboard"),
+              (route) => false,
+            );
+          } else if (index == 2) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfileScreen(),
               ),
-            ],
-          ),
-        ),
+              (route) => false,
+            );
+          } else {
+            setState(() {
+              currentIndex = index;
+            });
+          }
+        },
       ),
     );
   }
