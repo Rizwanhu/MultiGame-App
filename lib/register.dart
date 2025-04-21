@@ -1,3 +1,4 @@
+import 'package:app/login_signup.dart';
 import 'package:app/main_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -144,7 +145,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     onPressed: () => Navigator.push(
                                       context,
                                       MaterialPageRoute(
-                                        builder: (context) => MainScreen(),
+                                        builder: (context) => LoginPage(),
                                       ),
                                     ),
                                     child: const Text('OK'),
