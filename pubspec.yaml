@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  video_player: ^2.8.0  # Latest stable version
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -67,6 +68,12 @@ flutter:
     - assets/images/splash1.png
     - assets/images/splash2.jpg
     - assets/images/coin.gif
+    - assets/images/trophy.gif
+    - assets/images/island.jpg
+    - assets/images/squid1.jpg
+    - assets/images/robot.gif
+    - assets/images/giphy.gif
+    - assets/images/dragon.gif
 
   # Add fonts section
   fonts:

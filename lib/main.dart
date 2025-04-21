@@ -32,7 +32,7 @@ class MyApp extends StatelessWidget {
       // initialRoute: '/profile',
       // routes: {
       //   '/profile': (context) => const ProfileScreen(),
-      //   // Add other routes when you create the home and leaderboard screens
+        //   // Add other routes when you create the home and leaderboard screens
       //   '/home': (context) => const Placeholder(), // Replace with actual home screen
       //   '/leaderboard': (context) => const Placeholder(), // Replace with actual leaderboard screen
       // },

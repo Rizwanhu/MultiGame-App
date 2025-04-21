@@ -5,111 +5,142 @@ class GameDetailScreen extends StatelessWidget {
   final String gameImage;
 
   const GameDetailScreen({
+    super.key,
     required this.gameName,
     required this.gameImage,
   });
-
-  // Description logic based on the game name
-  String getGameDescription() {
-    if (gameName.toLowerCase().contains("snake")) {
-      return "Control the snake to collect food and grow longer. Avoid hitting walls and your own tail. The longer the snake, the higher your score!";
-    } else if (gameName.toLowerCase().contains("tic")) {
-      return "Play against an opponent and place your X or O on the grid. The first to get 3 in a row — horizontally, vertically, or diagonally — wins!";
-    } else {
-      return "Enjoy playing $gameName!.";
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFDFF3FF),
-      body: Column(
+      body: Stack(
         children: [
-          // Header
-          Container(
-            color: Colors.green,
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(vertical: 40),
-            child: Column(
-              children: [
-                Text(
-                  gameName.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                SizedBox(height: 10),
-                Image.asset(gameImage, height: 80),
-              ],
+          // Background image
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Image.asset(
+              gameImage,
+              fit: BoxFit.cover,
+              height: MediaQuery.of(context).size.height * 0.35,
             ),
           ),
 
-          // Main content
-          Expanded(
+          // Main white rounded container
+          Positioned(
+            top: MediaQuery.of(context).size.height * 0.25,
+            left: 0,
+            right: 0,
             child: Container(
-              margin: EdgeInsets.all(16),
-              padding: EdgeInsets.all(16),
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(30),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: Offset(0, 6),
+                  ),
+                ],
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    getGameDescription(),
-                    style: TextStyle(fontSize: 14),
+                    gameName,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Move the paddle with your finger to keep the balls in play.\nIf you miss, your opponent scores a point.",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      height: 1.5,
+                    ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 20),
+                  const SizedBox(height: 20),
 
-                  // How to Play button
+                  // How to Play Button
                   ElevatedButton.icon(
-                    onPressed: () {
-                      // TODO: show how-to-play screen or dialog
-                    },
-                     icon: Icon(Icons.ondemand_video), // 🎥 video icon
-                    label: Text("HOW TO PLAY"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey[300],
-                      foregroundColor: Colors.black,
-                      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-
-                  // Play button
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      // TODO: navigate to the actual game screen
-                    },
-                    icon: Icon(Icons.play_arrow),
-                    label: Text("PLAY"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
+                    onPressed: () {},
+                    icon: Icon(Icons.play_arrow, color: Colors.green),
+                    label: Text(
+                      "HOW TO PLAY",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
                     ),
-                  ),
-                  Spacer(),
-
-                  // Back button
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    child: Text("Back"),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange[300],
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      minimumSize: Size(100, 40),
+                      backgroundColor: Color(0xFF4CAF50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 6,
+                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Play vs. Friend
+                  _buildOptionButton(
+                    icon: Icons.person,
+                    label: "PLAY VS.\nFRIEND",
+                    onTap: () {},
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Play vs. Bot
+                  _buildOptionButton(
+                    icon: Icons.smart_toy,
+                    label: "PLAY VS.\nBOT",
+                    onTap: () {},
+                  ),
+                  const SizedBox(height: 30),
+
+                  // Back Button
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Container(
+                      width: 100,
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: Color(0xFFDD8558),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.orangeAccent.shade100,
+                            blurRadius: 4,
+                            offset: Offset(0, 4),
+                          )
+                        ],
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Colors.orange.shade700,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        "Back",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: 1,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -117,6 +148,47 @@ class GameDetailScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildOptionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: Color(0xFF1E88E5),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.blue.shade100,
+              blurRadius: 8,
+              offset: Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white, size: 28),
+            const SizedBox(width: 12),
+            Text(
+              label,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 16,
+                height: 1.2,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
       ),
     );
   }

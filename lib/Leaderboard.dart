@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'Bottombar.dart';
 import 'main_screen.dart';
 import 'profile_screen.dart';
-
+import 'ads_screen.dart';
 
 class LeaderboardPage extends StatefulWidget {
   final int initialIndex;
@@ -174,6 +174,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 (route) => false,
               );
             } else if (index == 2) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => AdsScreen()),
+                (route) => false,
+              );
+            } else if (index == 3) {
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => ProfileScreen()),

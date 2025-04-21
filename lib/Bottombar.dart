@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+// import 'ads_screen.dart';
 
 class CustomBottomBar extends StatelessWidget {
   final int currentIndex;
@@ -9,8 +10,8 @@ class CustomBottomBar extends StatelessWidget {
   CustomBottomBar({
     required this.currentIndex,
     required this.onTap,
-    this.icons = const [Icons.home, Icons.bar_chart, Icons.person],
-    this.labels = const ["Home", "Leaderboard", "Profile"],
+    this.icons = const [Icons.home, Icons.bar_chart, Icons.monetization_on, Icons.person],
+    this.labels = const ["Home", "Leaderboard", "Ads", "Profile"],
   });
 
   @override
