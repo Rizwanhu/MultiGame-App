@@ -1,38 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'logo_screen.dart';
-// import 'main_screen.dart';
-// import 'Leaderboard.dart';
-// import 'register.dart';
+import 'theme_provider.dart';
 
 void main() {
-  runApp(MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  const MyApp({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MultiGame',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.light,
+        ),
       ),
-      home: SplashScreen(), // Start with SplashScreen
+      darkTheme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+          brightness: Brightness.dark,
+        ),
+      ),
+      themeMode: themeProvider.themeMode,
+      home:  SplashScreen(),
     );
   }
 }
-
-
-
-      //   primarySwatch: Colors.purple,
-      //   scaffoldBackgroundColor: Colors.grey[100],
-      // ),
-      // initialRoute: '/profile',
-      // routes: {
-      //   '/profile': (context) => const ProfileScreen(),
-        //   // Add other routes when you create the home and leaderboard screens
-      //   '/home': (context) => const Placeholder(), // Replace with actual home screen
-      //   '/leaderboard': (context) => const Placeholder(), // Replace with actual leaderboard screen
-      // },

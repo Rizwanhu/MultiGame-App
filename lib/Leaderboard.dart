@@ -54,6 +54,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   ];
 
   late int currentIndex;
+  int userScore = 1250; // User's score variable
 
   List<IconData> icons = [Icons.home, Icons.bar_chart, Icons.person];
   List<String> labels = ["Home", "Leaderboard", "Profile"];
@@ -67,11 +68,23 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async => false,  // Disable back button
+      onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Leaderboard'),
-          automaticallyImplyLeading: false,  // Remove back button
+          title: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Text(
+                'Score: $userScore',
+                style: TextStyle(
+                  fontSize: 19,
+                
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          automaticallyImplyLeading: false,
           centerTitle: true,
         ),
         body: Stack(
@@ -79,7 +92,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             Container(
               decoration: BoxDecoration(
                 image: DecorationImage(
-                  image: AssetImage('assets/images/background_picture.jpg'), // Changed from 'assets/blur_background.png'
+                  image: AssetImage('assets/images/background_picture.jpg'),
                   fit: BoxFit.cover,
                 ),
               ),

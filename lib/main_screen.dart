@@ -1,22 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'Leaderboard.dart';
 import 'gameDetail.dart';
-import 'Bottombar.dart';  // Add this import
-import 'GameCard.dart';  // Add this import
-import 'profile_screen.dart';  // Add this import
-import 'media_grid.dart';  // Add this import
+import 'Bottombar.dart';
+import 'GameCard.dart';
+import 'profile_screen.dart';
+import 'media_grid.dart';
 import 'ads_screen.dart';
-
+import 'theme_provider.dart';
 
 void main() {
-  runApp(MultiGameApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: MultiGameApp(),
+    ),
+  );
 }
 
 class MultiGameApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: themeProvider.themeMode,
       home: MainScreen(),
     );
   }
@@ -33,8 +44,11 @@ class _MainScreenState extends State<MainScreen> {
   List<String> labels = ["Home", "Leaderboard", "Profile"];
   double volumeValue = 50.0;
   bool isMusicOn = true;
+  int userScore = 1250;
 
   void openDrawer() {
+    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+    
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -45,7 +59,8 @@ class _MainScreenState extends State<MainScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text("Settings", 
+                  Text(
+                    "Settings", 
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
                   ),
                   Row(
@@ -63,7 +78,6 @@ class _MainScreenState extends State<MainScreen> {
                                 volumeValue = val;
                               });
                             });
-                            // TODO: Implement volume control logic here
                           },
                         ),
                       ),
@@ -82,7 +96,18 @@ class _MainScreenState extends State<MainScreen> {
                               isMusicOn = val;
                             });
                           });
-                          // TODO: Implement music toggle logic here
+                        },
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text("Dark Mode"),
+                      Switch(
+                        value: themeProvider.themeMode == ThemeMode.dark,
+                        onChanged: (val) {
+                          themeProvider.toggleTheme(val);
                         },
                       ),
                     ],
@@ -111,33 +136,29 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        toolbarHeight: 45, // Decreased height
+        toolbarHeight: 45,
         title: Row(
           children: [
-            // Image.asset(
-            //   'assets/images/giphy.gif',
-            //   width: 30,
-            //   height: 40,
-            //   fit: BoxFit.contain,
-            // ),
-            // SizedBox(width: 8),
             Text(
               "Multigame App",
               style: TextStyle(
                 fontSize: 28,
                 fontFamily: 'LuckiestGuy',
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
-                letterSpacing: 2.0, // Added letter spacing
+                color: isDarkMode ? Colors.white : Colors.black,
+                letterSpacing: 2.0,
                 shadows: [
                   Shadow(
-                    color: Colors.white,
+                    color: isDarkMode ? Colors.black : Colors.white,
                     blurRadius: 5,
                     offset: Offset(2, 2),
-                  ),
+                  )
                 ],
                 decoration: TextDecoration.none,
                 decorationColor: Colors.yellow,
@@ -166,7 +187,39 @@ class _MainScreenState extends State<MainScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            const DiagonalMediaGrid(),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              color: isDarkMode ? Colors.blue[800] : Colors.blue,
+              width: double.infinity,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Text(
+                    "SCORE: ",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Text(
+                    userScore.toString(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            Container(
+              height: 150,
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: const DiagonalMediaGrid(),
+            ),
+            
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: GridView.count(

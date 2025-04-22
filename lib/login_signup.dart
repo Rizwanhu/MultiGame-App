@@ -89,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
                 height: 50,
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.pink,
+                    backgroundColor: const Color.fromARGB(255, 224, 147, 173),
                   ),
                   onPressed: () {
                     if (_formKey.currentState!.validate()) {
@@ -101,6 +101,7 @@ class _LoginPageState extends State<LoginPage> {
                   },
                   child: const Text(
                     'LOGIN',
+                    //selectionColor: Colors.white,
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
@@ -124,7 +125,7 @@ class _LoginPageState extends State<LoginPage> {
                       "Sign up now",
                       style: TextStyle(
                         color: Colors.blue,
-                        fontWeight: FontWeight.bold,
+                                             fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),

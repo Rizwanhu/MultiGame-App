@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'game_detail_screen.dart';
 import 'Bottombar.dart';
 import 'main_screen.dart';
 import 'Leaderboard.dart';
 import 'ads_screen.dart';
+import 'theme_provider.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int initialIndex;
-  const ProfileScreen({this.initialIndex = 3, super.key});
+  const ProfileScreen({this.initialIndex = 3, Key? key}) : super(key: key);
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -24,14 +26,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        backgroundColor: Colors.grey.shade100,
+        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.grey.shade100,
         appBar: AppBar(
           title: const Text("Profile"),
           centerTitle: true,
           automaticallyImplyLeading: false,
+          backgroundColor: isDarkMode ? Colors.grey[850] : null,
         ),
         body: Padding(
           padding: const EdgeInsets.all(20),
@@ -41,29 +47,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
               Center(
                 child: CircleAvatar(
                   radius: 50,
-                  // backgroundImage: NetworkImage(
-                  //   'https://api.adorable.io/avatars/285/johndoe.png', // Random avatar API
-                  // ),
+                  backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
+                  child: Icon(
+                    Icons.person,
+                    size: 40,
+                    color: isDarkMode ? Colors.white : Colors.grey[600],
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
 
               // Username
-              const Text(
+              Text(
                 "John Doe",
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
                 ),
               ),
               const SizedBox(height: 6),
 
               // Email
-              const Text(
+              Text(
                 "johndoe@example.com",
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey,
+                  color: isDarkMode ? Colors.grey[400] : Colors.grey,
                 ),
               ),
               const SizedBox(height: 30),
@@ -81,7 +91,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   elevation: 8,
-                  shadowColor: Colors.black45,
+                  shadowColor: isDarkMode ? Colors.black : Colors.black45,
+                  color: isDarkMode ? Colors.grey[850] : Colors.white,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(20),
                     child: Stack(
@@ -89,7 +100,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         Image.asset(
                           'assets/images/coin.gif',
-                          height: 250, // Increased from 180 to 220
+                          height: 250,
                           width: double.infinity,
                           fit: BoxFit.cover,
                           repeat: ImageRepeat.repeat,

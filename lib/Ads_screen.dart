@@ -1,27 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'Bottombar.dart';
 import 'main_screen.dart';
 import 'Leaderboard.dart';
 import 'profile_screen.dart';
-
-void main() {
-  runApp(MyApp());
-}
-
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Cash Card UI',
-      home: AdsScreen(),
-    );
-  }
-}
+import 'theme_provider.dart';
 
 class AdsScreen extends StatefulWidget {
   final int initialIndex;
-  const AdsScreen({this.initialIndex = 2, super.key});
+  const AdsScreen({this.initialIndex = 2, Key? key}) : super(key: key);
 
   @override
   State<AdsScreen> createState() => _AdsScreenState();
@@ -39,22 +26,26 @@ class _AdsScreenState extends State<AdsScreen> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        backgroundColor: Color(0xFFEFEAFE), // Light purple background
+        backgroundColor: isDarkMode ? Colors.grey[900] : Color(0xFFEFEAFE),
         body: Center(
           child: Container(
             width: size.width * 0.85,
             height: size.height * 0.8,
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(30), // Rounded corners
+              color: isDarkMode ? Colors.grey[850] : Colors.white,
+              borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: isDarkMode 
+                      ? Colors.black.withOpacity(0.4)
+                      : Colors.black.withOpacity(0.1),
                   blurRadius: 25,
                   spreadRadius: 2,
                 ),
@@ -66,27 +57,25 @@ class _AdsScreenState extends State<AdsScreen> {
                 Stack(
                   alignment: Alignment.center,
                   children: [
-                    // Shadow below the image
                     Positioned(
                       bottom: 0,
                       child: Container(
                         width: 120,
                         height: 20,
                         decoration: BoxDecoration(
-                          color: Colors.blue.withOpacity(0.5), // Increased opacity
+                          color: Colors.blue.withOpacity(0.5),
                           borderRadius: BorderRadius.circular(50),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.blueAccent.withOpacity(0.5), // Increased opacity
-                              blurRadius: 20, // Increased blur
-                              spreadRadius: 4, // Increased spread
-                              offset: Offset(0, 2), // Added offset
+                              color: Colors.blueAccent.withOpacity(0.5),
+                              blurRadius: 20,
+                              spreadRadius: 4,
+                              offset: Offset(0, 2),
                             )
                           ],
                         ),
                       ),
                     ),
-                    // Main image
                     Image.asset(
                       'assets/images/trophy.gif',
                       width: 130,
@@ -102,16 +91,16 @@ class _AdsScreenState extends State<AdsScreen> {
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF1A2D5A),
+                        color: isDarkMode ? Colors.white : Color(0xFF1A2D5A),
                       ),
                     ),
                     SizedBox(height: 12),
                     Text(
-                      'Lorem ipsum dolor sit amet,\nconsectetur adipiscing elit.\nEtiam vel mattis velit.',
+                      'Watch Ad to get 50 points',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 15.5,
-                        color: Colors.grey[600],
+                        color: isDarkMode ? Colors.grey[400] : Colors.grey[600],
                         height: 1.5,
                       ),
                     ),
