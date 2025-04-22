@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'theme_provider.dart';
 
 class GameDetailScreen extends StatelessWidget {
   final String gameName;
@@ -12,8 +14,11 @@ class GameDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+
     return Scaffold(
-      backgroundColor: Color(0xFFDFF3FF),
+      backgroundColor: isDarkMode ? Color(0xFF121212) : Color(0xFFDFF3FF),
       body: Stack(
         children: [
           // Background image
@@ -28,7 +33,7 @@ class GameDetailScreen extends StatelessWidget {
             ),
           ),
 
-          // Main white rounded container
+          // Main rounded container
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
             left: 0,
@@ -37,11 +42,11 @@ class GameDetailScreen extends StatelessWidget {
               margin: EdgeInsets.symmetric(horizontal: 20),
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 30),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
                     blurRadius: 12,
                     offset: Offset(0, 6),
                   ),
@@ -55,7 +60,7 @@ class GameDetailScreen extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: isDarkMode ? Colors.white : Colors.black87,
                     ),
                   ),
                   SizedBox(height: 16),
@@ -65,6 +70,7 @@ class GameDetailScreen extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       height: 1.5,
+                      color: isDarkMode ? Colors.grey[300] : Colors.black87,
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -97,6 +103,7 @@ class GameDetailScreen extends StatelessWidget {
                     icon: Icons.person,
                     label: "PLAY VS.\nFRIEND",
                     onTap: () {},
+                    isDarkMode: isDarkMode,
                   ),
                   const SizedBox(height: 12),
 
@@ -105,6 +112,7 @@ class GameDetailScreen extends StatelessWidget {
                     icon: Icons.smart_toy,
                     label: "PLAY VS.\nBOT",
                     onTap: () {},
+                    isDarkMode: isDarkMode,
                   ),
                   const SizedBox(height: 30),
 
@@ -119,7 +127,7 @@ class GameDetailScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.orangeAccent.shade100,
+                            color: Colors.orangeAccent.shade100.withOpacity(isDarkMode ? 0.5 : 1),
                             blurRadius: 4,
                             offset: Offset(0, 4),
                           )
@@ -156,17 +164,18 @@ class GameDetailScreen extends StatelessWidget {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    required bool isDarkMode,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
-          color: Color(0xFF1E88E5),
+          color: isDarkMode ? Color(0xFF0D47A1) : Color(0xFF1E88E5),
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.blue.shade100,
+              color: Colors.blue.shade100.withOpacity(isDarkMode ? 0.3 : 1),
               blurRadius: 8,
               offset: Offset(0, 6),
             ),
