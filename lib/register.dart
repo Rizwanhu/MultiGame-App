@@ -15,6 +15,10 @@ class _SignUpPageState extends State<SignUpPage> {
   String username = '';
   String email = '';
   String password = '';
+  String confirmPassword = '';
+
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
 
   @override
   Widget build(BuildContext context) {
@@ -107,6 +111,18 @@ class _SignUpPageState extends State<SignUpPage> {
                       decoration: InputDecoration(
                         labelText: 'Password',
                         prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
                         filled: true,
                         fillColor: Colors.grey[100],
                         border: OutlineInputBorder(
@@ -114,14 +130,50 @@ class _SignUpPageState extends State<SignUpPage> {
                           borderSide: BorderSide.none,
                         ),
                       ),
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       validator: (value) {
                         if (value == null || value.length < 6) {
                           return 'Password must be at least 6 characters';
                         }
                         return null;
                       },
+                      onChanged: (value) => password = value,
                       onSaved: (value) => password = value!,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Confirm Password
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'Confirm Password',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscureConfirmPassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscureConfirmPassword = !_obscureConfirmPassword;
+                            });
+                          },
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      obscureText: _obscureConfirmPassword,
+                      validator: (value) {
+                        if (value != password) {
+                          return 'Passwords do not match';
+                        }
+                        return null;
+                      },
+                      onSaved: (value) => confirmPassword = value!,
                     ),
                     const SizedBox(height: 30),
 
