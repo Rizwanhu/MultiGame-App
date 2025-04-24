@@ -1,6 +1,5 @@
 import 'package:app/main_screen.dart';
 import 'package:flutter/material.dart';
-// import 'main_screen.dart';
 import 'register.dart';
 
 class LoginPage extends StatefulWidget {
@@ -14,6 +13,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _obscurePassword = true; // For password visibility toggle
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,7 @@ class _LoginPageState extends State<LoginPage> {
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.email),
+                  prefixIcon: const Icon(Icons.email),
                   hintText: 'Email',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -54,15 +54,27 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 20),
 
-              // Password Field
+              // Password Field with eye icon
               TextFormField(
                 controller: _passwordController,
-                obscureText: true,
+                obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.lock),
+                  prefixIcon: const Icon(Icons.lock),
                   hintText: 'Password',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
                   ),
                 ),
                 validator: (value) {
@@ -72,16 +84,28 @@ class _LoginPageState extends State<LoginPage> {
                   return null;
                 },
               ),
-              const SizedBox(height: 10),
 
-              // Remember Me Checkbox
-              Row(
-                children: [
-                  Checkbox(value: true, onChanged: (value) {}),
-                  const Text("Remember me"),
-                ],
+              // Forgot Password
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Forgot Password clicked"),
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "Forgot Password?",
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
               // Login Button
               SizedBox(
@@ -101,31 +125,48 @@ class _LoginPageState extends State<LoginPage> {
                   },
                   child: const Text(
                     'LOGIN',
-                    //selectionColor: Colors.white,
                     style: TextStyle(fontSize: 18),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Sign Up
+              // Sign Up Option with hover effect
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Not a member? "),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => const SignUpPage()),
-                      );
-                    },
-                    child: const Text(
-                      "Sign up now",
-                      style: TextStyle(
-                        color: Colors.blue,
-                                             fontWeight: FontWeight.bold,
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SignUpPage(),
+                          ),
+                        );
+                      },
+                      child: StatefulBuilder(
+                        builder: (context, setState) {
+                          bool isHovered = false;
+                          return MouseRegion(
+                            onEnter: (_) => setState(() => isHovered = true),
+                            onExit: (_) => setState(() => isHovered = false),
+                            child: Text(
+                              "Sign up now",
+                              style: TextStyle(
+                                color: isHovered
+                                    ? Colors.blue.shade700
+                                    : Colors.blue,
+                                fontWeight: FontWeight.bold,
+                                decoration: isHovered
+                                    ? TextDecoration.underline
+                                    : TextDecoration.none,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),

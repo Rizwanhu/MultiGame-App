@@ -7,7 +7,7 @@ import 'Leaderboard.dart';
 import 'ads_screen.dart';
 import 'theme_provider.dart';
 import 'privacy_policy_screen.dart';
-import 'login_signup.dart';
+import 'login_signup.dart'; 
 
 class ProfileScreen extends StatefulWidget {
   final int initialIndex;
@@ -61,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               // Username
               Text(
-                "John Doe",
+                "Muhammad Musadiq ",
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -72,7 +72,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
               // Email
               Text(
-                "johndoe@example.com",
+                "musadiqmusadiq@gmail.com",
                 style: TextStyle(
                   fontSize: 16,
                   color: isDarkMode ? Colors.grey[400] : Colors.grey,
