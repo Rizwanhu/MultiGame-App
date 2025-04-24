@@ -99,12 +99,12 @@ class GameDetailScreen extends StatelessWidget {
                   const SizedBox(height: 16),
 
                   // Play vs. Friend
-                  _buildOptionButton(
-                    icon: Icons.person,
-                    label: "PLAY VS.\nFRIEND",
-                    onTap: () {},
-                    isDarkMode: isDarkMode,
-                  ),
+                  // _buildOptionButton(
+                  //   icon: Icons.person,
+                  //   label: "PLAY VS.\nFRIEND",
+                  //   onTap: () {},
+                  //   isDarkMode: isDarkMode,
+                  // ),
                   const SizedBox(height: 12),
 
                   // Play vs. Bot
