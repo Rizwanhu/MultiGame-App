@@ -4,7 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'theme_provider.dart';
 import 'Games/CardFlipper/CardFlipper.dart';  // Add this import
 import 'Games/SnakeGame/SnakeGame.dart';  // Add this import
-// import 'Games/SnakeGame/game.dart';
+import 'Games/TicTacToe_AI/TicTacToe.dart';  // Add this import
 
 class GameDetailScreen extends StatelessWidget {
   final String gameName;
@@ -141,6 +141,16 @@ class GameDetailScreen extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => CardFlipperGame()),
+                        );
+                      } else if (gameName == "Snake Game") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => GamePage()),
+                        );
+                      } else if (gameName == "Tic Tac Toe") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => MyApp()),
                         );
                       }
                     },

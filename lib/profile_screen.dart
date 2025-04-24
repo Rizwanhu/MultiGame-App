@@ -7,7 +7,7 @@ import 'Leaderboard.dart';
 import 'ads_screen.dart';
 import 'theme_provider.dart';
 import 'privacy_policy_screen.dart';
-import 'login_signup.dart'; // Make sure you have this file
+import 'login_signup.dart';
 
 class ProfileScreen extends StatefulWidget {
   final int initialIndex;

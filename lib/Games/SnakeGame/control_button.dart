@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 
 class ControlButton extends StatelessWidget {
-  final VoidCallback? onPressed; // Fix: Use VoidCallback? instead of Function?
+  final VoidCallback? onPressed;
   final Icon? icon;
+  final String? tag; // Add tag parameter
 
-  const ControlButton({super.key, this.onPressed, this.icon});
+  const ControlButton({
+    super.key, 
+    this.onPressed, 
+    this.icon,
+    this.tag, // Add tag to constructor
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,9 +22,10 @@ class ControlButton extends StatelessWidget {
         child: FittedBox(
           child: FloatingActionButton(
             backgroundColor: Colors.green,
-            elevation: 0.0, // 'this.' is optional here
+            elevation: 0.0,
             onPressed: onPressed,
-            child: icon, // Fix: Now correctly typed
+            child: icon,
+            heroTag: tag ?? UniqueKey().toString(), // Add unique hero tag
           ),
         ),
       ),
