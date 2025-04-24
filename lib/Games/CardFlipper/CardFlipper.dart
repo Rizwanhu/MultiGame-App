@@ -1,50 +1,15 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'card_board.dart';
+import '../../main_screen.dart';
 
-void main() {
-  runApp(RestartWidget(child: MyApp()));
-}
-
-class MyApp extends StatelessWidget {
+class CardFlipperGame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       debugShowMaterialGrid: false,
       home: MyHomePage(),
-    );
-  }
-}
-
-class RestartWidget extends StatefulWidget {
-  final Widget child;
-
-  const RestartWidget({Key? key, required this.child}) : super(key: key);
-
-  static void restartApp(BuildContext context) {
-    final _RestartWidgetState? state = context.findAncestorStateOfType<_RestartWidgetState>();
-    state?.restartApp();
-  }
-
-  @override
-  _RestartWidgetState createState() => _RestartWidgetState();
-}
-
-class _RestartWidgetState extends State<RestartWidget> {
-  Key key = UniqueKey();
-
-  void restartApp() {
-    setState(() {
-      key = UniqueKey();
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return KeyedSubtree(
-      key: key,
-      child: widget.child,
     );
   }
 }
@@ -133,16 +98,39 @@ class MyHomePageState extends State<MyHomePage> {
       init++;
       Future.delayed(Duration.zero, () => showAlert(context));
     }
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Container(
-        decoration: BoxDecoration(),
-        child: Column(
-          children: <Widget>[
-            SizedBox(height: 24.0),
-            buildScore(),
-            buildBoard(context),
-          ],
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
+          (route) => false,
+        );
+        return false;
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          title: Text('Card Flipper'),
+          leading: IconButton(
+            icon: Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => MainScreen()),
+                (route) => false,
+              );
+            },
+          ),
+        ),
+        body: Container(
+          decoration: BoxDecoration(),
+          child: Column(
+            children: <Widget>[
+              SizedBox(height: 24.0),
+              buildScore(),
+              buildBoard(context),
+            ],
+          ),
         ),
       ),
     );

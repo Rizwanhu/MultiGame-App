@@ -39,9 +39,9 @@ class CardItemState extends State<CardItem> with TickerProviderStateMixin {
 
     if (widget.model!.status == ECardStatus.None) {
       imagePrimary = widget.model!.image;
-      imageSecondary = 'assets/00.png';
+      imageSecondary = 'assets/images/CardFlipGame/00.png';
     } else {
-      imagePrimary = 'assets/00.png';
+      imagePrimary = 'assets/images/CardFlipGame/00.png';
       imageSecondary = widget.model!.image;
     }
 

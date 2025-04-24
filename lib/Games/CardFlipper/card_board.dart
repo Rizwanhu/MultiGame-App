@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'main.dart';
+import 'CardFlipper.dart';
 import 'card_item.dart';
 
 class CardBoard extends StatefulWidget {
@@ -35,7 +35,7 @@ class CardBoardState extends State<CardBoard> {
     return List.generate(asset.length, (index) {
       return CardModel(
         id: index,
-        image: 'assets/${asset[index]}',
+        image: 'assets/images/CardFlipGame/${asset[index]}',
         key: UniqueKey(),
       );
     });

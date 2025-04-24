@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme_provider.dart';
+import 'Games/CardFlipper/CardFlipper.dart';  // Add this import
 
 class GameDetailScreen extends StatelessWidget {
   final String gameName;
@@ -78,7 +79,20 @@ class GameDetailScreen extends StatelessWidget {
 
                   // How to Play Button
                   ElevatedButton.icon(
-                    onPressed: () {},
+                    // 
+                    onPressed: () async {
+                      if (gameName == "Card Flipper") {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CardFlipperGame()),
+                        );
+                        if (result != null) {
+                          // Handle the returned score if needed
+                          print('Game Score: $result');
+                        }
+                      }
+                    },
+                    // 
                     icon: Icon(Icons.play_arrow, color: Colors.green),
                     label: Text(
                       "HOW TO PLAY",

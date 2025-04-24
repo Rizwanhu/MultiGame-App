@@ -86,7 +86,7 @@ flutter:
     - assets/images/CardFlipGame/08.png
     - assets/images/CardFlipGame/09.png
     - assets/images/CardFlipGame/010.png 
-
+    
   # Add fonts section
   fonts:
     - family: LuckiestGuy
@@ -95,4 +95,4 @@ flutter:
 
     - family: GoogleSans
       fonts:
-        - asset: assets/GoogleSans-Medium.ttf
+        - asset: assets/fonts/GoogleSans-Medium.ttf
