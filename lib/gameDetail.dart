@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'theme_provider.dart';
 import 'Games/CardFlipper/CardFlipper.dart';  // Add this import
+import 'Games/SnakeGame/SnakeGame.dart';  // Add this import
+// import 'Games/SnakeGame/game.dart';
 
 class GameDetailScreen extends StatelessWidget {
   final String gameName;
@@ -79,20 +81,35 @@ class GameDetailScreen extends StatelessWidget {
 
                   // How to Play Button
                   ElevatedButton.icon(
-                    // 
                     onPressed: () async {
                       if (gameName == "Card Flipper") {
                         final result = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => CardFlipperGame()),
+                          PageRouteBuilder(
+                            pageBuilder: (context, animation, secondaryAnimation) => CardFlipperGame(),
+                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                              return SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(1.0, 0.0),
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
+                              );
+                            },
+                          ),
                         );
                         if (result != null) {
-                          // Handle the returned score if needed
                           print('Game Score: $result');
                         }
+                      } else if (gameName == "Snake Game") {
+                        await Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => GamePage(),
+                            fullscreenDialog: true,
+                          ),
+                        );
                       }
                     },
-                    // 
                     icon: Icon(Icons.play_arrow, color: Colors.green),
                     label: Text(
                       "HOW TO PLAY",

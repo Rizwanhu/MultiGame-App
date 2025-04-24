@@ -1,0 +1,4 @@
+enum DirectionType {
+  horizontal,
+  vertical,
+}
