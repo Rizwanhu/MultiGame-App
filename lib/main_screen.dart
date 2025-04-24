@@ -216,7 +216,7 @@ class _MainScreenState extends State<MainScreen> {
             
             Container(
               height: 150,
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8), // Reduced horizontal padding from 20 to 12
               child: const DiagonalMediaGrid(),
             ),
             
