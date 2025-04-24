@@ -1,3 +1,16 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        google()         // Required for Firebase and Google services
+        mavenCentral()   // Required for general dependencies
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.4.2' // Make sure your gradle-wrapper matches
+        classpath 'com.google.gms:google-services:4.3.15' // Google services plugin for Firebase
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -6,10 +19,9 @@ allprojects {
 }
 
 rootProject.buildDir = "../build"
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-subprojects {
     project.evaluationDependsOn(":app")
 }
 

@@ -1,11 +1,13 @@
+import 'package:app/login_signup.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'game_detail_screen.dart';
 import 'Bottombar.dart';
 import 'main_screen.dart';
 import 'Leaderboard.dart';
 import 'ads_screen.dart';
 import 'theme_provider.dart';
+import 'privacy_policy_screen.dart';
+import 'login_signup.dart'; // Make sure you have this file
 
 class ProfileScreen extends StatefulWidget {
   final int initialIndex;
@@ -78,50 +80,78 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
               const SizedBox(height: 30),
 
-              // Fancy card with GIF
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
+              // Static card with GIF
+              Card(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                elevation: 8,
+                shadowColor: isDarkMode ? Colors.black : Colors.black45,
+                color: isDarkMode ? Colors.grey[850] : Colors.white,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      Image.asset(
+                        'assets/images/coin.gif',
+                        height: 150,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        repeat: ImageRepeat.repeat,
+                        gaplessPlayback: true,
+                      ),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        color: Colors.black.withOpacity(0.6),
+                        child: const Text(
+                          "Earn Coins by Playing!",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 18,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Logout button
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => const GameDetailScreen()),
+                    MaterialPageRoute(builder: (_) =>  LoginPage()),
+                    (route) => false,
                   );
                 },
-                child: Card(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  elevation: 8,
-                  shadowColor: isDarkMode ? Colors.black : Colors.black45,
-                  color: isDarkMode ? Colors.grey[850] : Colors.white,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Stack(
-                      alignment: Alignment.bottomCenter,
-                      children: [
-                        Image.asset(
-                          'assets/images/coin.gif',
-                          height: 250,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          repeat: ImageRepeat.repeat,
-                          gaplessPlayback: true,
-                        ),
-                        Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          color: Colors.black.withOpacity(0.6),
-                          child: const Text(
-                            "Tap to Play!",
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        )
-                      ],
-                    ),
+                icon: const Icon(Icons.logout),
+                label: const Text("Logout"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isDarkMode ? Colors.red[700] : Colors.red,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              // Privacy Policy button
+              OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
+                  );
+                },
+                icon: const Icon(Icons.privacy_tip),
+                label: const Text("Privacy Policy"),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: isDarkMode ? Colors.white : Colors.black,
+                  side: BorderSide(
+                    color: isDarkMode ? Colors.white54 : Colors.black54,
                   ),
                 ),
               ),

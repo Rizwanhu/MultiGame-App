@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'theme_provider.dart';
 import 'Games/CardFlipper/CardFlipper.dart';  // Add this import
 import 'Games/SnakeGame/SnakeGame.dart';  // Add this import
@@ -79,38 +80,40 @@ class GameDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // How to Play Button
+                  // HOW TO PLAY (YouTube)
                   ElevatedButton.icon(
+                    
                     onPressed: () async {
-                      if (gameName == "Card Flipper") {
-                        final result = await Navigator.push(
-                          context,
-                          PageRouteBuilder(
-                            pageBuilder: (context, animation, secondaryAnimation) => CardFlipperGame(),
-                            transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                              return SlideTransition(
-                                position: Tween<Offset>(
-                                  begin: const Offset(1.0, 0.0),
-                                  end: Offset.zero,
-                                ).animate(animation),
-                                child: child,
-                              );
-                            },
-                          ),
+                      const youtubeUrl = 'https://www.youtube.com'; 
+                      if (await canLaunchUrl(Uri.parse(youtubeUrl))) {
+                        await launchUrl(Uri.parse(youtubeUrl), mode: LaunchMode.externalApplication);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not open YouTube link')),
                         );
-                        if (result != null) {
-                          print('Game Score: $result');
-                        }
-                      } else if (gameName == "Snake Game") {
-                        await Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (context) => GamePage(),
-                            fullscreenDialog: true,
-                          ),
-                        );
+                      // if (gameName == "Card Flipper") {
+                      //   final result = await Navigator.push(
+                      //     context,
+                      //     PageRouteBuilder(
+                      //       pageBuilder: (context, animation, secondaryAnimation) => CardFlipperGame(),
+                      //       transitionsBuilder: (context, animation, secondaryAnimation, child) {
+                      //         return SlideTransition(
+                      //           position: Tween<Offset>(
+                      //             begin: const Offset(1.0, 0.0),
+                      //             end: Offset.zero,
+                      //           ).animate(animation),
+                      //           child: child,
+                      //         );
+                      //       },
+                      //     ),
+                      //   );
+                      //   if (result != null) {
+                      //     print('Game Score: $result');
+                      //   }
+                      // }
                       }
                     },
-                    icon: Icon(Icons.play_arrow, color: Colors.green),
+                    icon: Icon(Icons.ondemand_video, color: Colors.white),
                     label: Text(
                       "HOW TO PLAY",
                       style: TextStyle(
@@ -129,20 +132,18 @@ class GameDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Play vs. Friend
+                  // PLAY GAME Button
                   _buildOptionButton(
-                    icon: Icons.person,
-                    label: "PLAY VS.\nFRIEND",
-                    onTap: () {},
-                    isDarkMode: isDarkMode,
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Play vs. Bot
-                  _buildOptionButton(
-                    icon: Icons.smart_toy,
-                    label: "PLAY VS.\nBOT",
-                    onTap: () {},
+                    icon: Icons.videogame_asset,
+                    label: "PLAY\nGAME",
+                    onTap: () {
+                      if (gameName == "Card Flipper") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CardFlipperGame()),
+                        );
+                      }
+                    },
                     isDarkMode: isDarkMode,
                   ),
                   const SizedBox(height: 30),
