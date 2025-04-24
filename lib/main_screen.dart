@@ -122,6 +122,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   List<Map<String, dynamic>> games = [
+    {"name": "Card Flipper", "image": "assets/images/CardFlipGame/00.png"},  // Add this as first game
     {"name": "Snake Game", "image": "assets/images/snake.png"},
     {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
     {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
@@ -140,7 +141,10 @@ class _MainScreenState extends State<MainScreen> {
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 
     return Scaffold(
+      backgroundColor: isDarkMode ? Color(0xFF121212) : Colors.white,  // Added explicit background color
       appBar: AppBar(
+        backgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,  // Added background color
+        elevation: 0,  // Added to match theme style
         automaticallyImplyLeading: false,
         toolbarHeight: 45,
         title: Row(
@@ -189,7 +193,7 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             Container(
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: isDarkMode ? Colors.blue[800] : Colors.blue,
+              color: isDarkMode ? Colors.blue[900] : Colors.blue,  // Adjusted dark mode color
               width: double.infinity,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
@@ -216,7 +220,7 @@ class _MainScreenState extends State<MainScreen> {
             
             Container(
               height: 150,
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8), // Reduced horizontal padding from 20 to 12
               child: const DiagonalMediaGrid(),
             ),
             
@@ -253,39 +257,46 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: CustomBottomBar(
-        currentIndex: currentIndex,
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => LeaderboardPage(initialIndex: index),
-              ),
-              (route) => false,
-            );
-          } else if (index == 2) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => AdsScreen(initialIndex: index),
-              ),
-              (route) => false,
-            );
-          } else if (index == 3) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ProfileScreen(),
-              ),
-              (route) => false,
-            );
-          } else {
-            setState(() {
-              currentIndex = index;
-            });
-          }
-        },
+      bottomNavigationBar: Theme(  // Wrapped bottomNavigationBar with Theme
+        data: Theme.of(context).copyWith(
+          navigationBarTheme: NavigationBarThemeData(
+            backgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
+          ),
+        ),
+        child: CustomBottomBar(
+          currentIndex: currentIndex,
+          onTap: (index) {
+            if (index == 1) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LeaderboardPage(initialIndex: index),
+                ),
+                (route) => false,
+              );
+            } else if (index == 2) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => AdsScreen(initialIndex: index),
+                ),
+                (route) => false,
+              );
+            } else if (index == 3) {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProfileScreen(),
+                ),
+                (route) => false,
+              );
+            } else {
+              setState(() {
+                currentIndex = index;
+              });
+            }
+          },
+        ),
       ),
     );
   }

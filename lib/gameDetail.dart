@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'theme_provider.dart';
+import 'Games/CardFlipper/CardFlipper.dart';  // Add this import
 
 class GameDetailScreen extends StatelessWidget {
   final String gameName;
@@ -76,10 +78,19 @@ class GameDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // How to Play Button
+                  // HOW TO PLAY (YouTube)
                   ElevatedButton.icon(
-                    onPressed: () {},
-                    icon: Icon(Icons.play_arrow, color: Colors.green),
+                    onPressed: () async {
+                      const youtubeUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'; // Replace with your actual video link
+                      if (await canLaunchUrl(Uri.parse(youtubeUrl))) {
+                        await launchUrl(Uri.parse(youtubeUrl), mode: LaunchMode.externalApplication);
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Could not open YouTube link')),
+                        );
+                      }
+                    },
+                    icon: Icon(Icons.ondemand_video, color: Colors.white),
                     label: Text(
                       "HOW TO PLAY",
                       style: TextStyle(
@@ -98,20 +109,18 @@ class GameDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // Play vs. Friend
-                  // _buildOptionButton(
-                  //   icon: Icons.person,
-                  //   label: "PLAY VS.\nFRIEND",
-                  //   onTap: () {},
-                  //   isDarkMode: isDarkMode,
-                  // ),
-                  const SizedBox(height: 12),
-
-                  // Play vs. Bot
+                  // PLAY GAME Button
                   _buildOptionButton(
-                    icon: Icons.smart_toy,
-                    label: "PLAY VS.\nBOT",
-                    onTap: () {},
+                    icon: Icons.videogame_asset,
+                    label: "PLAY\nGAME",
+                    onTap: () {
+                      if (gameName == "Card Flipper") {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CardFlipperGame()),
+                        );
+                      }
+                    },
                     isDarkMode: isDarkMode,
                   ),
                   const SizedBox(height: 30),

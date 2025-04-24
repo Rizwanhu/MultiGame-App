@@ -7,7 +7,7 @@ plugins {
 android {
     namespace 'com.example.app'
     compileSdk flutter.compileSdkVersion
-    ndkVersion flutter.ndkVersion
+    // ndkVersion flutter.ndkVersion  // ❌ Commented to fix missing NDK error
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -15,7 +15,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.multigameapp"  // Ensure this matches your Firebase app ID
+        applicationId "com.example.multigameapp"
         minSdk flutter.minSdkVersion
         targetSdk flutter.targetSdkVersion
         versionCode flutter.versionCode
@@ -33,7 +33,6 @@ flutter {
     source = "../.."
 }
 
-// ✅ Kotlin jvmTarget configuration (this was the issue)
 tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
     kotlinOptions {
         jvmTarget = "1.8"

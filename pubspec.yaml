@@ -32,6 +32,7 @@ dependencies:
     sdk: flutter
   provider: ^6.0.5
   video_player: ^2.8.0  # Latest stable version
+  url_launcher: ^6.1.10
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -81,9 +82,24 @@ flutter:
     - assets/images/robot.gif
     - assets/images/giphy.gif
     - assets/images/dragon.gif
-
+    - assets/images/CardFlipGame/00.png
+    - assets/images/CardFlipGame/01.png
+    - assets/images/CardFlipGame/02.png
+    - assets/images/CardFlipGame/03.png   
+    - assets/images/CardFlipGame/04.png
+    - assets/images/CardFlipGame/05.png
+    - assets/images/CardFlipGame/06.png
+    - assets/images/CardFlipGame/07.png
+    - assets/images/CardFlipGame/08.png
+    - assets/images/CardFlipGame/09.png
+    - assets/images/CardFlipGame/010.png 
+    
   # Add fonts section
   fonts:
     - family: LuckiestGuy
       fonts:
         - asset: assets/fonts/LuckiestGuy-Regular.ttf
+
+    - family: GoogleSans
+      fonts:
+        - asset: assets/fonts/GoogleSans-Medium.ttf
