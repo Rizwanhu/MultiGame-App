@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'logo_screen.dart';
-import 'theme_provider.dart';
+import 'screen/logo_screen.dart';
+import 'theme/theme_provider.dart';
 
 void main() {
   runApp(

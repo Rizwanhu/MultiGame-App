@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'card_board.dart';
-import '../../main_screen.dart';
+import '../../screen/main_screen.dart';
 
 class CardFlipperGame extends StatelessWidget {
   @override

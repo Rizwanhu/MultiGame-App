@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'theme_provider.dart';
-import 'Games/CardFlipper/CardFlipper.dart';  // Add this import
-import 'Games/SnakeGame/SnakeGame.dart';  // Add this import
-import 'Games/TicTacToe_AI/TicTacToe.dart';  // Add this import
+import '../theme/theme_provider.dart';
+import '../Games/CardFlipper/CardFlipper.dart';  // Add this import
+import '../Games/SnakeGame/SnakeGame.dart';  // Add this import
+import '../Games/TicTacToe_AI/TicTacToe.dart';  // Add this import
 
 class GameDetailScreen extends StatelessWidget {
   final String gameName;

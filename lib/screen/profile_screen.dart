@@ -1,11 +1,11 @@
-import 'package:app/login_signup.dart';
+// import 'package:app/screen/login_signup.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'Bottombar.dart';
+import '../components/Bottombar.dart';
 import 'main_screen.dart';
 import 'Leaderboard.dart';
 import 'ads_screen.dart';
-import 'theme_provider.dart';
+import '../../theme/theme_provider.dart';
 import 'privacy_policy_screen.dart';
 import 'login_signup.dart'; 
 

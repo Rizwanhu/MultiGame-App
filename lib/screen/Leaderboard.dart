@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'Bottombar.dart';
+import '../components/Bottombar.dart';
 import 'main_screen.dart';
 import 'profile_screen.dart';
 import 'ads_screen.dart';

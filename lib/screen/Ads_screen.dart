@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'Bottombar.dart';
+import '../components/Bottombar.dart';
 import 'main_screen.dart';
 import 'Leaderboard.dart';
 import 'profile_screen.dart';
-import 'theme_provider.dart';
+import '../../theme/theme_provider.dart';
+
 
 class AdsScreen extends StatefulWidget {
   final int initialIndex;

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'Leaderboard.dart';
-import 'gameDetail.dart';
-import 'Bottombar.dart';
-import 'GameCard.dart';
+import '../components/gameDetail.dart';
+import '../../components/Bottombar.dart';
+import '../components/GameCard.dart';
 import 'profile_screen.dart';
-import 'media_grid.dart';
+import '../components/media_grid.dart';
 import 'ads_screen.dart';
-import 'theme_provider.dart';
+import '../theme/theme_provider.dart';
 
 void main() {
   runApp(
