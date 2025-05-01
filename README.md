@@ -1,4 +1,4 @@
-# app
+# multigame_new
 
 A new Flutter project.
 

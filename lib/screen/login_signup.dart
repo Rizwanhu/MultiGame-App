@@ -1,6 +1,8 @@
 import 'main_screen.dart';
 import 'package:flutter/material.dart';
 import 'register.dart';
+import '../services/auth_service.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,6 +15,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final AuthService _auth = AuthService();
   bool _obscurePassword = true; // For password visibility toggle
 
   @override
@@ -89,13 +92,24 @@ class _LoginPageState extends State<LoginPage> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Forgot Password clicked"),
-                      ),
-                    );
-                  },
+                  onPressed: () async {
+  if (_emailController.text.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Please enter your email first")),
+    );
+    return;
+  }
+  try {
+    await _auth.forgotPassword(_emailController.text.trim());
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Password reset email sent")),
+    );
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(e.toString())),
+    );
+  }
+},
                   child: const Text(
                     "Forgot Password?",
                     style: TextStyle(
@@ -115,14 +129,24 @@ class _LoginPageState extends State<LoginPage> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 224, 147, 173),
                   ),
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => MainScreen()),
-                      );
-                    }
-                  },
+                  onPressed: () async {
+  if (_formKey.currentState!.validate()) {
+    try {
+      await _auth.login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
+},
                   child: const Text(
                     'LOGIN',
                     style: TextStyle(fontSize: 18),

@@ -1,1 +1,0 @@
-D:\4th Semester\Mobile app\flutter\src\flutter\packages\flutter_tools\gradle\src\main\groovy\CMakeLists.txt

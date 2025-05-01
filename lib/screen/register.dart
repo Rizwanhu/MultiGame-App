@@ -1,6 +1,8 @@
 import 'login_signup.dart';
 import 'main_screen.dart';
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
+
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -181,32 +183,34 @@ class _SignUpPageState extends State<SignUpPage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
-
-                            showDialog(
-                              context: context,
-                              builder: (_) => AlertDialog(
-                                title: const Text('Registered'),
-                                content: Text(
-                                  'Welcome $username!\nEmail: $email\nPassword: $password',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => LoginPage(),
-                                      ),
-                                    ),
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          }
-                        },
+    try {
+      await AuthService().register(email, password);
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Registered'),
+          content: Text('Welcome $username!\nEmail: $email'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => LoginPage()),
+              ),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.toString())),
+      );
+    }
+  }
+},
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.deepPurple,
                           padding: const EdgeInsets.symmetric(vertical: 16),

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "303650839386",
+    "project_id": "multigameapp-c84fc",
+    "storage_bucket": "multigameapp-c84fc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:303650839386:android:4890fe30cdc31a2ad5f163",
+        "android_client_info": {
+          "package_name": "com.example.multigameapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC2cabBhzffluJRa0eYsbor1ONBOFStHpE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

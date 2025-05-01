@@ -1,6 +1,6 @@
 {
-    "name": "app",
-    "short_name": "app",
+    "name": "multigame_new",
+    "short_name": "multigame_new",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
