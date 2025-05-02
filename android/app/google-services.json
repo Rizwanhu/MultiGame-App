@@ -12,7 +12,20 @@
           "package_name": "com.example.multigameapp"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "303650839386-3vfvge9aiq7419u21df1dhua2fhkiqsu.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.multigameapp",
+            "certificate_hash": "1243e144ee676e10eb3201152c7e933f4226f9a5"
+          }
+        },
+        {
+          "client_id": "303650839386-kmp9rai7kmb1oamfqoa54bob65qlnrd7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyC2cabBhzffluJRa0eYsbor1ONBOFStHpE"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "303650839386-kmp9rai7kmb1oamfqoa54bob65qlnrd7.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "303650839386-keq5q04mqupe2i78nm1bjui25qf64emd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.app"
+              }
+            }
+          ]
         }
       }
     }

@@ -1,52 +1,90 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  // Login with email/password
+  // Email/Password Login
   Future<User?> login(String email, String password) async {
     try {
-      UserCredential result = await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return result.user;
+      return userCredential.user;
     } on FirebaseAuthException catch (e) {
-      throw _authError(e.code);
+      throw handleAuthError(e);
     }
   }
 
-  // Register with email/password
+  // Registration
   Future<User?> register(String email, String password) async {
     try {
-      UserCredential result = await _auth.createUserWithEmailAndPassword(
+      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return result.user;
+      return userCredential.user;
     } on FirebaseAuthException catch (e) {
-      throw _authError(e.code);
+      throw handleAuthError(e);
     }
   }
 
-  // Forgot password
+  // Password Reset
   Future<void> forgotPassword(String email) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      throw _authError(e.code);
+      throw handleAuthError(e);
     }
   }
 
-  String _authError(String code) {
-    switch (code) {
+  // Google Sign-In
+  Future<User?> signInWithGoogle() async {
+    try {
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return null;
+
+      final GoogleSignInAuthentication googleAuth = 
+          await googleUser.authentication;
+
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      UserCredential userCredential = 
+          await _auth.signInWithCredential(credential);
+      
+      return userCredential.user;
+    } on FirebaseAuthException catch (e) {
+      throw handleAuthError(e);
+    }
+  }
+
+  // Sign Out
+  Future<void> signOut() async {
+    await _auth.signOut();
+    await _googleSignIn.signOut();
+  }
+
+  // Error Handling
+  String handleAuthError(FirebaseAuthException e) {
+    switch (e.code) {
       case 'invalid-email': return 'Invalid email format';
       case 'user-disabled': return 'Account disabled';
       case 'user-not-found': return 'No account found';
       case 'wrong-password': return 'Incorrect password';
       case 'email-already-in-use': return 'Email already registered';
-      case 'weak-password': return 'Password must be 6+ characters';
-      default: return 'Login failed. Please try again.';
+      case 'operation-not-allowed': return 'Email/password not enabled';
+      case 'weak-password': return 'Password too weak';
+      case 'too-many-requests': return 'Too many attempts';
+      case 'network-request-failed': return 'Network error';
+      default: return 'Login failed: ${e.message}';
     }
   }
+
+  // Current User
+  User? get currentUser => _auth.currentUser;
 }

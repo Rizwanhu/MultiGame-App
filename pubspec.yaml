@@ -33,6 +33,8 @@ dependencies:
   provider: ^6.0.5
   video_player: ^2.8.0  # Latest stable version
   url_launcher: ^6.1.10
+  connectivity_plus: ^5.0.0
+  google_sign_in: ^6.1.5
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -92,7 +94,8 @@ flutter:
     - assets/images/CardFlipGame/07.png
     - assets/images/CardFlipGame/08.png
     - assets/images/CardFlipGame/09.png
-    - assets/images/CardFlipGame/010.png 
+    - assets/images/CardFlipGame/010.png
+    - assets/images/google_logo.png 
     
   # Add fonts section
   fonts:

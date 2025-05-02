@@ -1,8 +1,11 @@
-import 'main_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'dart:io';
+import 'main_screen.dart';
 import 'register.dart';
 import '../services/auth_service.dart';
-
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -13,10 +16,121 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   final AuthService _auth = AuthService();
-  bool _obscurePassword = true; // For password visibility toggle
+  bool _obscurePassword = true;
+  bool _isLoading = false;
+
+  Future<bool> _checkInternetConnection() async {
+    final connectivityResult = await Connectivity().checkConnectivity();
+    return connectivityResult != ConnectivityResult.none;
+  }
+
+  String _getErrorMessage(dynamic error) {
+    if (error is FirebaseAuthException) {
+      return _auth.handleAuthError(error);
+    } else if (error is SocketException) {
+      return 'No internet connection';
+    } else {
+      return 'An error occurred. Please try again';
+    }
+  }
+
+  Future<void> _handleLogin() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+
+    try {
+      if (!await _checkInternetConnection()) {
+        throw SocketException('No internet connection');
+      }
+
+      await _auth.login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MainScreen()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_getErrorMessage(e)),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleForgotPassword() async {
+    if (_emailController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Please enter your email first"),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      if (!await _checkInternetConnection()) {
+        throw SocketException('No internet connection');
+      }
+
+      await _auth.forgotPassword(_emailController.text.trim());
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Password reset email sent"),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_getErrorMessage(e))),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      if (!await _checkInternetConnection()) {
+        throw SocketException('No internet connection');
+      }
+
+      await _auth.signInWithGoogle();
+      
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) =>  MainScreen()),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_getErrorMessage(e)),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,13 +143,7 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(
-                "LOGIN",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              const Text("LOGIN", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
               const SizedBox(height: 30),
 
               // Email Field
@@ -44,46 +152,32 @@ class _LoginPageState extends State<LoginPage> {
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.email),
                   hintText: 'Email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Enter email';
-                  }
+                  if (value == null || value.isEmpty) return 'Enter email';
+                  if (!value.contains('@')) return 'Enter valid email';
                   return null;
                 },
               ),
               const SizedBox(height: 20),
 
-              // Password Field with eye icon
+              // Password Field
               TextFormField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(Icons.lock),
                   hintText: 'Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                   suffixIcon: IconButton(
-                    icon: Icon(
-                      _obscurePassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
-                    },
+                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
                 validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Enter password';
-                  }
+                  if (value == null || value.isEmpty) return 'Enter password';
+                  if (value.length < 6) return 'Password must be at least 6 characters';
                   return null;
                 },
               ),
@@ -92,31 +186,9 @@ class _LoginPageState extends State<LoginPage> {
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () async {
-  if (_emailController.text.isEmpty) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Please enter your email first")),
-    );
-    return;
-  }
-  try {
-    await _auth.forgotPassword(_emailController.text.trim());
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("Password reset email sent")),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.toString())),
-    );
-  }
-},
-                  child: const Text(
-                    "Forgot Password?",
-                    style: TextStyle(
-                      color: Colors.blue,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  onPressed: _isLoading ? null : _handleForgotPassword,
+                  child: const Text("Forgot Password?", 
+                    style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(height: 10),
@@ -128,69 +200,58 @@ class _LoginPageState extends State<LoginPage> {
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 224, 147, 173),
+                    disabledBackgroundColor: Colors.grey,
                   ),
-                  onPressed: () async {
-  if (_formKey.currentState!.validate()) {
-    try {
-      await _auth.login(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-      );
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => MainScreen()),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
-    }
-  }
-},
-                  child: const Text(
-                    'LOGIN',
-                    style: TextStyle(fontSize: 18),
+                  onPressed: _isLoading ? null : _handleLogin,
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                      : const Text('LOGIN', style: TextStyle(fontSize: 18)),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // OR Divider
+              const Row(children: [
+                Expanded(child: Divider()),
+                Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text("OR")),
+                Expanded(child: Divider()),
+              ]),
+              const SizedBox(height: 20),
+
+              // Google Sign-In Button
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: OutlinedButton(
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.grey.shade400),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: _isLoading ? null : _signInWithGoogle,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset('assets/images/google_logo.png', height: 24, width: 24),
+                      const SizedBox(width: 10),
+                      const Text('Sign in with Google', style: TextStyle(fontSize: 16)),
+                    ],
                   ),
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Sign Up Option with hover effect
+              // Sign Up Option
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text("Not a member? "),
-                  MouseRegion(
-                    cursor: SystemMouseCursors.click,
-                    child: GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SignUpPage(),
-                          ),
-                        );
-                      },
-                      child: StatefulBuilder(
-                        builder: (context, setState) {
-                          bool isHovered = false;
-                          return MouseRegion(
-                            onEnter: (_) => setState(() => isHovered = true),
-                            onExit: (_) => setState(() => isHovered = false),
-                            child: Text(
-                              "Sign up now",
-                              style: TextStyle(
-                                color: isHovered
-                                    ? Colors.blue.shade700
-                                    : Colors.blue,
-                                fontWeight: FontWeight.bold,
-                                decoration: isHovered
-                                    ? TextDecoration.underline
-                                    : TextDecoration.none,
-                              ),
-                            ),
-                          );
-                        },
+                  TextButton(
+                    onPressed: _isLoading ? null : () => Navigator.push(
+                      context, MaterialPageRoute(builder: (context) => const SignUpPage())),
+                    child: const Text("Sign up now",
+                      style: TextStyle(
+                        color: Colors.blue,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
