@@ -1,187 +1,206 @@
-// import 'package:app/screen/login_signup.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../components/Bottombar.dart';
-import 'main_screen.dart';
-import 'Leaderboard.dart';
-import 'ads_screen.dart';
-import '../../theme/theme_provider.dart';
-import 'privacy_policy_screen.dart';
-import 'login_signup.dart'; 
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import 'package:app/components/Bottombar.dart';
+import 'package:app/screen/Ads_screen.dart';
+import 'package:app/screen/Leaderboard.dart';
+import 'package:app/screen/login_signup.dart';
+import 'package:app/screen/main_screen.dart';
+import 'package:app/screen/privacy_policy_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
-  final int initialIndex;
-  const ProfileScreen({this.initialIndex = 3, Key? key}) : super(key: key);
-
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  _ProfileScreenState createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  late int currentIndex;
+  final user = FirebaseAuth.instance.currentUser;
+  String? username;
+  String? email;
+  int? score;
+  String? photoUrl;
+  File? localImageFile;
+  bool isLoading = true;
+  int currentIndex = 3;
 
   @override
   void initState() {
     super.initState();
-    currentIndex = widget.initialIndex;
+    fetchUserData();
+    loadLocalImage();
+  }
+
+  Future<void> fetchUserData() async {
+    if (user == null) return;
+    final doc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
+    final data = doc.data();
+    if (data != null) {
+      setState(() {
+        username = data['username'];
+        email = data['email'];
+        score = data['score'];
+        photoUrl = data['photoUrl'];
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  Future<void> pickImage() async {
+    final picker = ImagePicker();
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text("Choose image source"),
+        children: [
+          SimpleDialogOption(
+            child: const Text("Camera"),
+            onPressed: () => Navigator.pop(ctx, ImageSource.camera),
+          ),
+          SimpleDialogOption(
+            child: const Text("Gallery"),
+            onPressed: () => Navigator.pop(ctx, ImageSource.gallery),
+          ),
+        ],
+      ),
+    );
+    if (source == null) return;
+
+    final XFile? picked = await picker.pickImage(source: source, imageQuality: 70);
+    if (picked == null) return;
+
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/profile_image.jpg';
+    final savedImage = await File(picked.path).copy(path);
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('localImagePath', savedImage.path);
+
+    setState(() {
+      localImageFile = savedImage;
+    });
+  }
+
+  Future<void> loadLocalImage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final path = prefs.getString('localImagePath');
+    if (path != null && File(path).existsSync()) {
+      setState(() {
+        localImageFile = File(path);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
-    return WillPopScope(
-      onWillPop: () async => false,
-      child: Scaffold(
-        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.grey.shade100,
-        appBar: AppBar(
-          title: const Text("Profile"),
-          centerTitle: true,
-          automaticallyImplyLeading: false,
-          backgroundColor: isDarkMode ? Colors.grey[850] : null,
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            children: [
-              // Avatar
-              Center(
-                child: CircleAvatar(
-                  radius: 50,
-                  backgroundColor: isDarkMode ? Colors.grey[800] : Colors.grey[300],
-                  child: Icon(
-                    Icons.person,
-                    size: 40,
-                    color: isDarkMode ? Colors.white : Colors.grey[600],
+    return Scaffold(
+      appBar: AppBar(title: const Text("Profile")),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  GestureDetector(
+                    onTap: pickImage,
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundImage: localImageFile != null
+                          ? FileImage(localImageFile!)
+                          : (photoUrl != null
+                              ? NetworkImage(photoUrl!)
+                              : const AssetImage('assets/images/default_profile.png') as ImageProvider),
+                      child: localImageFile == null && photoUrl == null
+                          ? const Icon(Icons.camera_alt, size: 30, color: Colors.white)
+                          : null,
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Username
-              Text(
-                "Muhammad Musadiq ",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: isDarkMode ? Colors.white : Colors.black,
-                ),
-              ),
-              const SizedBox(height: 6),
-
-              // Email
-              Text(
-                "musadiqmusadiq@gmail.com",
-                style: TextStyle(
-                  fontSize: 16,
-                  color: isDarkMode ? Colors.grey[400] : Colors.grey,
-                ),
-              ),
-              const SizedBox(height: 30),
-
-              // Static card with GIF
-              Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                elevation: 8,
-                shadowColor: isDarkMode ? Colors.black : Colors.black45,
-                color: isDarkMode ? Colors.grey[850] : Colors.white,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      Image.asset(
-                        'assets/images/coin.gif',
-                        height: 150,
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                        repeat: ImageRepeat.repeat,
-                        gaplessPlayback: true,
+                  const SizedBox(height: 24),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Username: $username", style: const TextStyle(fontSize: 18)),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Email: $email", style: const TextStyle(fontSize: 18)),
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text("Score: $score", style: const TextStyle(fontSize: 18)),
+                  ),
+                  const SizedBox(height: 60),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(builder: (_) => LoginPage()),
+                        (route) => false,
+                      );
+                    },
+                    icon: const Icon(Icons.logout),
+                    label: const Text("Logout"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isDarkMode ? Colors.red[700] : Colors.red,
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => PrivacyPolicyScreen()),
+                      );
+                    },
+                    icon: const Icon(Icons.privacy_tip),
+                    label: const Text("Privacy Policy"),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: isDarkMode ? Colors.white : Colors.black,
+                      side: BorderSide(
+                        color: isDarkMode ? Colors.white54 : Colors.black54,
                       ),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        color: Colors.black.withOpacity(0.6),
-                        child: const Text(
-                          "Earn Coins by Playing!",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      )
-                    ],
+                      minimumSize: const Size(double.infinity, 50),
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(height: 20),
-
-              // Logout button
-              ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) =>  LoginPage()),
-                    (route) => false,
-                  );
-                },
-                icon: const Icon(Icons.logout),
-                label: const Text("Logout"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isDarkMode ? Colors.red[700] : Colors.red,
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // Privacy Policy button
-              OutlinedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen()),
-                  );
-                },
-                icon: const Icon(Icons.privacy_tip),
-                label: const Text("Privacy Policy"),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: isDarkMode ? Colors.white : Colors.black,
-                  side: BorderSide(
-                    color: isDarkMode ? Colors.white54 : Colors.black54,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        bottomNavigationBar: CustomBottomBar(
-          currentIndex: currentIndex,
-          onTap: (index) {
-            if (index == 0) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => MainScreen()),
-                (route) => false,
-              );
-            } else if (index == 1) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => LeaderboardPage()),
-                (route) => false,
-              );
-            } else if (index == 2) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => AdsScreen()),
-                (route) => false,
-              );
-            }
-          },
-        ),
+            ),
+      bottomNavigationBar: CustomBottomBar(
+        currentIndex: currentIndex,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => MainScreen()),
+              (route) => false,
+            );
+          } else if (index == 1) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => LeaderboardPage()),
+              (route) => false,
+            );
+          } else if (index == 2) {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => AdsScreen()),
+              (route) => false,
+            );
+          }
+        },
       ),
     );
   }

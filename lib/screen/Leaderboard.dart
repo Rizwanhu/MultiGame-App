@@ -54,7 +54,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   ];
 
   late int currentIndex;
-  int userScore = 1250; // User's score variable
+  int userScore = 0; // User's score variable
 
   List<IconData> icons = [Icons.home, Icons.bar_chart, Icons.person];
   List<String> labels = ["Home", "Leaderboard", "Profile"];

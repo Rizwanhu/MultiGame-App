@@ -187,7 +187,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
     try {
-      await AuthService().register(email, password);
+      await AuthService().register(email, password,username);
       showDialog(
         context: context,
         builder: (_) => AlertDialog(

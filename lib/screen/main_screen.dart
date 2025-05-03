@@ -44,7 +44,7 @@ class _MainScreenState extends State<MainScreen> {
   List<String> labels = ["Home", "Leaderboard", "Profile"];
   double volumeValue = 50.0;
   bool isMusicOn = true;
-  int userScore = 1250;
+  int userScore = 0;
 
   void openDrawer() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
