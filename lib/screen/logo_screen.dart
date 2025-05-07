@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'main_screen.dart';
 import 'login_signup.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -12,10 +14,20 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     Timer(Duration(seconds: 5), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-      );
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        // User is already signed in
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MainScreen()),
+        );
+      } else {
+        // User not signed in
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+      }
     });
   }
 
@@ -24,8 +36,8 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: SizedBox.expand(
         child: Image.asset(
-          'assets/images/splash2.jpg', // use your actual asset path
-          fit: BoxFit.cover, // Makes the image fill the screen
+          'assets/images/splash2.jpg',
+          fit: BoxFit.cover,
         ),
       ),
     );

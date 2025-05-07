@@ -1,11 +1,14 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:provider/provider.dart';
 import '../components/Bottombar.dart';
 import 'main_screen.dart';
 import 'Leaderboard.dart';
 import 'profile_screen.dart';
 import '../../theme/theme_provider.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AdsScreen extends StatefulWidget {
   final int initialIndex;
@@ -17,11 +20,113 @@ class AdsScreen extends StatefulWidget {
 
 class _AdsScreenState extends State<AdsScreen> {
   late int currentIndex;
+  RewardedAd? _rewardedAd;
+  bool _isAdLoaded = false;
+  bool _isLoading = false;
+  Timer? _retryTimer;
 
   @override
   void initState() {
     super.initState();
     currentIndex = widget.initialIndex;
+    _loadRewardedAd();
+  }
+
+  @override
+  void dispose() {
+    _rewardedAd?.dispose();
+    _retryTimer?.cancel();
+    super.dispose();
+  }
+
+  void _loadRewardedAd() {
+    print('🔄 Attempting to load rewarded ad...');
+    final request = AdRequest(
+      
+    );
+
+    RewardedAd.load(
+      adUnitId: 'ca-app-pub-2381056381999516/8093596488',
+      request: request,
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (ad) {
+          print('✅ Rewarded ad loaded.');
+          setState(() {
+            _rewardedAd = ad;
+            _isAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (error) {
+          print('❌ Failed to load rewarded ad: ${error.message} (code: ${error.code})');
+          setState(() {
+            _isAdLoaded = false;
+          });
+
+          // Retry after 10 seconds
+          _retryTimer?.cancel();
+          _retryTimer = Timer(Duration(seconds: 10), _loadRewardedAd);
+        },
+      ),
+    );
+  }
+
+  void _showRewardedAd() {
+    if (!_isAdLoaded || _rewardedAd == null) {
+      print('⚠️ Ad is not ready. Check internet or try later.');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ad is not ready yet. Please try again later.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        print('🧹 Ad dismissed.');
+        ad.dispose();
+        _loadRewardedAd();
+        setState(() {
+          _isLoading = false;
+        });
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        print('❌ Failed to show ad: $error');
+        ad.dispose();
+        _loadRewardedAd();
+        setState(() {
+          _isLoading = false;
+        });
+      },
+    );
+
+    _rewardedAd!.show(
+      onUserEarnedReward: (ad, reward) {
+        print('🎉 User earned reward: ${reward.amount}');
+        _updateUserScore(50);
+      },
+    );
+  }
+
+  void _updateUserScore(int points) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
+        await FirebaseFirestore.instance.runTransaction((transaction) async {
+          final snapshot = await transaction.get(userDoc);
+          final currentScore = snapshot.data()?['score'] ?? 0;
+          transaction.update(userDoc, {'score': currentScore + points});
+        });
+        print('✅ Score updated in Firestore!');
+      } else {
+        print('⚠️ No user signed in.');
+      }
+    } catch (e) {
+      print('❌ Error updating score: $e');
+    }
   }
 
   @override
@@ -44,7 +149,7 @@ class _AdsScreenState extends State<AdsScreen> {
               borderRadius: BorderRadius.circular(30),
               boxShadow: [
                 BoxShadow(
-                  color: isDarkMode 
+                  color: isDarkMode
                       ? Colors.black.withOpacity(0.4)
                       : Colors.black.withOpacity(0.1),
                   blurRadius: 25,
@@ -108,7 +213,7 @@ class _AdsScreenState extends State<AdsScreen> {
                   ],
                 ),
                 GestureDetector(
-                  onTap: () {},
+                  onTap: _isLoading ? null : _showRewardedAd,
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 200),
                     width: double.infinity,
@@ -144,7 +249,7 @@ class _AdsScreenState extends State<AdsScreen> {
                     ),
                     child: Center(
                       child: Text(
-                        'Start',
+                        _isLoading ? 'Loading...' : 'Watch Ad',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
