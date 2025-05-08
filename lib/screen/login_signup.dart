@@ -4,7 +4,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:io';
 import 'main_screen.dart';
-import 'register.dart';
+import 'register.dart'; // This is your SignUpPage
 import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -87,7 +87,7 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       await _auth.forgotPassword(_emailController.text.trim());
-      
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -113,11 +113,11 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       await _auth.signInWithGoogle();
-      
+
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) =>  MainScreen()),
+        MaterialPageRoute(builder: (context) => MainScreen()),
       );
     } catch (e) {
       if (!mounted) return;
@@ -133,131 +133,202 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text("LOGIN", style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 30),
-
-              // Email Field
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.email),
-                  hintText: 'Email',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Enter email';
-                  if (!value.contains('@')) return 'Enter valid email';
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-
-              // Password Field
-              TextFormField(
-                controller: _passwordController,
-                obscureText: _obscurePassword,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.lock),
-                  hintText: 'Password',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                  suffixIcon: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Enter password';
-                  if (value.length < 6) return 'Password must be at least 6 characters';
-                  return null;
-                },
-              ),
-
-              // Forgot Password
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: _isLoading ? null : _handleForgotPassword,
-                  child: const Text("Forgot Password?", 
-                    style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
-                ),
-              ),
-              const SizedBox(height: 10),
-
-              // Login Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 224, 147, 173),
-                    disabledBackgroundColor: Colors.grey,
-                  ),
-                  onPressed: _isLoading ? null : _handleLogin,
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                      : const Text('LOGIN', style: TextStyle(fontSize: 18)),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // OR Divider
-              const Row(children: [
-                Expanded(child: Divider()),
-                Padding(padding: EdgeInsets.symmetric(horizontal: 8), child: Text("OR")),
-                Expanded(child: Divider()),
-              ]),
-              const SizedBox(height: 20),
-
-              // Google Sign-In Button
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: OutlinedButton(
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.grey.shade400),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  ),
-                  onPressed: _isLoading ? null : _signInWithGoogle,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset('assets/images/google_logo.png', height: 24, width: 24),
-                      const SizedBox(width: 10),
-                      const Text('Sign in with Google', style: TextStyle(fontSize: 16)),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Sign Up Option
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text("Not a member? "),
-                  TextButton(
-                    onPressed: _isLoading ? null : () => Navigator.push(
-                      context, MaterialPageRoute(builder: (context) => const SignUpPage())),
-                    child: const Text("Sign up now",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF7F00FF), Color(0xFFE100FF)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.95),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
-            ],
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      "LOGIN",
+                      style: TextStyle(
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.deepPurple,
+                      ),
+                    ),
+                    const SizedBox(height: 25),
+
+                    // Email Field
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.email),
+                        hintText: 'Email',
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Enter email';
+                        if (!value.contains('@')) return 'Enter valid email';
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Password Field
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.lock),
+                        hintText: 'Password',
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixIcon: IconButton(
+                          icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Enter password';
+                        if (value.length < 6) return 'Password must be at least 6 characters';
+                        return null;
+                      },
+                    ),
+
+                    // Forgot Password
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _isLoading ? null : _handleForgotPassword,
+                        child: const Text(
+                          "Forgot Password?",
+                          style: TextStyle(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+
+                    // Login Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple,
+                          disabledBackgroundColor: Colors.grey,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _isLoading ? null : _handleLogin,
+                        child: _isLoading
+                            ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                            : const Text('LOGIN', style: TextStyle(fontSize: 18, color: Colors.white)),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // OR Divider
+                    const Row(
+                      children: [
+                        Expanded(child: Divider()),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 8),
+                          child: Text("OR"),
+                        ),
+                        Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Google Sign-In
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: Colors.grey.shade400),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: _isLoading ? null : _signInWithGoogle,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Image.asset('assets/images/google_logo.png', height: 24, width: 24),
+                            const SizedBox(width: 10),
+                            const Text(
+                              'Sign in with Google',
+                              style: TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Sign Up Option
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Not a member? "),
+                        TextButton(
+                          onPressed: _isLoading
+                              ? null
+                              : () => Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (_) => const SignUpPage()),
+                                  ),
+                          child: const Text(
+                            "Sign up now",
+                            style: TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
