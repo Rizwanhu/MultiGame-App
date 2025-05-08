@@ -2,6 +2,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'card_board.dart';
 import '../../screen/main_screen.dart';
+import '../../services/auth_service.dart'; // Add this import
+
 
 class CardFlipperGame extends StatelessWidget {
   @override
@@ -28,6 +30,7 @@ class MyHomePageState extends State<MyHomePage> {
   int score = 0;
   int time = 0;
   int init = 0;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -49,7 +52,7 @@ class MyHomePageState extends State<MyHomePage> {
             ),
           ),
           content: Text(
-            'Match two cards to score points. 1 pair match = 200 points',
+            'Match two cards to score points. 1 pair match = 20 points (max 200)',
             style: TextStyle(
               fontSize: 22.0,
               fontFamily: 'GoogleSans',
@@ -60,7 +63,7 @@ class MyHomePageState extends State<MyHomePage> {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
-                Timer(Duration(seconds: 0), runTimer);
+                runTimer();
               },
               child: Text(
                 " Let's play !",
@@ -78,18 +81,61 @@ class MyHomePageState extends State<MyHomePage> {
   }
 
   void runTimer() {
-    Timer(Duration(seconds: 1), () {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
       if (!mounted) return;
       setState(() {
-        if (score == 2000) {
-          time = -2;
-          score = 0;
-        } else {
-          time += 1;
-          runTimer();
-        }
+        time += 1;
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void onWin() {
+    setState(() {
+      if (score < 200) {
+        score += 20;
+        if (score > 200) score = 200;
+      }
+    });
+  }
+
+  void onGameEnd() async {
+    _timer?.cancel();
+
+    // Update Firebase score
+    final user = AuthService().currentUser;
+    if (user != null) {
+      final docRef = AuthService().firestore.collection('users').doc(user.uid);
+      final snapshot = await docRef.get();
+      final currentScore = snapshot.data()?['score'] ?? 0;
+      final newScore = currentScore + score;
+      await docRef.update({'score': newScore});
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Game Over!"),
+        content: Text("Total Time: ${time}s\nTotal Score: $score"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => MainScreen()),
+              );
+            },
+            child: Text("Back to Home"),
+          )
+        ],
+      ),
+    );
   }
 
   @override
@@ -100,6 +146,7 @@ class MyHomePageState extends State<MyHomePage> {
     }
     return WillPopScope(
       onWillPop: () async {
+        _timer?.cancel();
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => MainScreen()),
@@ -114,6 +161,7 @@ class MyHomePageState extends State<MyHomePage> {
           leading: IconButton(
             icon: Icon(Icons.arrow_back),
             onPressed: () {
+              _timer?.cancel();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => MainScreen()),
@@ -123,7 +171,6 @@ class MyHomePageState extends State<MyHomePage> {
           ),
         ),
         body: Container(
-          decoration: BoxDecoration(),
           child: Column(
             children: <Widget>[
               SizedBox(height: 24.0),
@@ -165,23 +212,10 @@ class MyHomePageState extends State<MyHomePage> {
 
   Widget buildBoard(BuildContext context) {
     return Flexible(
-      child: Stack(
-        children: <Widget>[
-          Padding(
-            padding: EdgeInsets.all(10.0),
-            child: CardBoard(onWin: onWin, context: context),
-          ),
-        ],
+      child: Padding(
+        padding: EdgeInsets.all(10.0),
+        child: CardBoard(onWin: onWin, context: context, onGameEnd: onGameEnd),
       ),
     );
-  }
-
-  void onWin() {
-    setState(() {
-      if (score == 2000) {
-        time = 0;
-      }
-      score += 200;
-    });
   }
 }

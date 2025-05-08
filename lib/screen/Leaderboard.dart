@@ -1,5 +1,8 @@
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../components/Bottombar.dart';
 import 'main_screen.dart';
 import 'profile_screen.dart';
@@ -7,14 +10,16 @@ import 'ads_screen.dart';
 
 class LeaderboardPage extends StatefulWidget {
   final int initialIndex;
-  
   LeaderboardPage({this.initialIndex = 1});
-  
+
   @override
   _LeaderboardPageState createState() => _LeaderboardPageState();
 }
 
 class _LeaderboardPageState extends State<LeaderboardPage> {
+  int userScore = 0;
+  late int currentIndex;
+
   final List<Map<String, dynamic>> scores = [
     {
       'name': 'Vic',
@@ -53,16 +58,26 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     },
   ];
 
-  late int currentIndex;
-  int userScore = 0; // User's score variable
-
-  List<IconData> icons = [Icons.home, Icons.bar_chart, Icons.person];
-  List<String> labels = ["Home", "Leaderboard", "Profile"];
-
   @override
   void initState() {
     super.initState();
     currentIndex = widget.initialIndex;
+    fetchUserScore();
+  }
+
+  Future<void> fetchUserScore() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      final snapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (snapshot.exists) {
+        final data = snapshot.data();
+        if (data != null && data.containsKey('score')) {
+          setState(() {
+            userScore = data['score'];
+          });
+        }
+      }
+    }
   }
 
   @override
@@ -71,21 +86,11 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
-          title: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                'Score: $userScore',
-                style: TextStyle(
-                  fontSize: 19,
-                
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          title: Text('Score: $userScore',
+            style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
           ),
-          automaticallyImplyLeading: false,
           centerTitle: true,
+          automaticallyImplyLeading: false,
         ),
         body: Stack(
           children: [
@@ -112,7 +117,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
+                    Padding(
                       padding: EdgeInsets.symmetric(vertical: 10),
                       child: Text(
                         'High Score',
@@ -127,7 +132,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                     ...List.generate(scores.length, (index) {
                       final item = scores[index];
                       final isTopThree = index < 3;
-
                       return Container(
                         padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
                         decoration: BoxDecoration(
@@ -137,36 +141,14 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                         ),
                         child: Row(
                           children: [
-                            Text('${index + 1}',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.blue[900],
-                                  fontWeight: FontWeight.bold,
-                                )),
+                            Text('${index + 1}', style: TextStyle(fontSize: 20, color: Colors.blue[900], fontWeight: FontWeight.bold)),
                             SizedBox(width: 10),
-                            CircleAvatar(
-                              radius: 18,
-                              backgroundImage: NetworkImage(item['image']),
-                            ),
+                            CircleAvatar(radius: 18, backgroundImage: NetworkImage(item['image'])),
                             SizedBox(width: 10),
                             Expanded(
-                              child: Text(
-                                item['name'],
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
+                              child: Text(item['name'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
                             ),
-                            Text(
-                              '${item['score']}',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            Text('${item['score']}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                           ],
                         ),
                       );
@@ -174,30 +156,18 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   ],
                 ),
               ),
-            )
+            ),
           ],
         ),
         bottomNavigationBar: CustomBottomBar(
           currentIndex: currentIndex,
           onTap: (index) {
             if (index == 0) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => MainScreen()),
-                (route) => false,
-              );
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => MainScreen()), (route) => false);
             } else if (index == 2) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => AdsScreen()),
-                (route) => false,
-              );
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => AdsScreen()), (route) => false);
             } else if (index == 3) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
-                (route) => false,
-              );
+              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => ProfileScreen()), (route) => false);
             }
           },
         ),

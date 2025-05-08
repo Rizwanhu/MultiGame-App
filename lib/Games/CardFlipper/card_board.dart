@@ -5,9 +5,15 @@ import 'card_item.dart';
 
 class CardBoard extends StatefulWidget {
   final Function() onWin;
+  final Function() onGameEnd;
   final BuildContext context;
 
-  CardBoard({Key? key, required this.onWin, required this.context}) : super(key: key);
+  CardBoard({
+    Key? key,
+    required this.onWin,
+    required this.onGameEnd,
+    required this.context,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => CardBoardState();
@@ -48,7 +54,10 @@ class CardBoardState extends State<CardBoard> {
       shrinkWrap: true,
       crossAxisCount: 4,
       childAspectRatio: 322 / 400,
-      children: cards.map((f) => CardItem(key: f.key, model: f, onFlipCard: handleFlipCard)).toList(),
+      children: cards
+          .map((f) =>
+              CardItem(key: f.key, model: f, onFlipCard: handleFlipCard))
+          .toList(),
     );
   }
 
@@ -72,25 +81,7 @@ class CardBoardState extends State<CardBoard> {
   void checkOver() {
     if (a >= 11) {
       a = 1;
-      showDialog(
-        context: widget.context,
-        builder: (context) => AlertDialog(
-          title: const Text("Congratulations!"),
-          content: const Text("You WIN !"),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => MyHomePage(score: 0, time: 0)),
-                );
-              },
-              child: const Text("Play Again"),
-            ),
-          ],
-        ),
-      );
+      widget.onGameEnd(); // <- This triggers the dialog and Firestore update
     }
   }
 

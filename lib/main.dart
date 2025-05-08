@@ -11,10 +11,15 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-   MobileAds.instance.updateRequestConfiguration(
-    RequestConfiguration(testDeviceIds: ['EMULATOR']),
-  );
-  MobileAds.instance.initialize(); // Initialize AdMob
+
+  // ✅ Configuring your actual device ID for test ads
+  // MobileAds.instance.updateRequestConfiguration(
+  //   RequestConfiguration(
+  //     testDeviceIds: ['42FD0187D4BEC04F307677305B50B40D'],
+  //   ),
+  // );
+
+  await MobileAds.instance.initialize(); // Initialize AdMob
 
   runApp(
     ChangeNotifierProvider(
@@ -30,7 +35,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'MultiGame',

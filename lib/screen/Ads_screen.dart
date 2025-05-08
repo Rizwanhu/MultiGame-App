@@ -41,12 +41,10 @@ class _AdsScreenState extends State<AdsScreen> {
 
   void _loadRewardedAd() {
     print('🔄 Attempting to load rewarded ad...');
-    final request = AdRequest(
-      
-    );
+    final request = AdRequest();
 
     RewardedAd.load(
-      adUnitId: 'ca-app-pub-2381056381999516/8093596488',
+      adUnitId: 'ca-app-pub-2381056381999516/3950724380',
       request: request,
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {
@@ -62,7 +60,6 @@ class _AdsScreenState extends State<AdsScreen> {
             _isAdLoaded = false;
           });
 
-          // Retry after 10 seconds
           _retryTimer?.cancel();
           _retryTimer = Timer(Duration(seconds: 10), _loadRewardedAd);
         },
@@ -71,8 +68,8 @@ class _AdsScreenState extends State<AdsScreen> {
   }
 
   void _showRewardedAd() {
+    print('! Ad is not ready. _isAdLoaded: $_isAdLoaded, _rewardedAd is null: ${_rewardedAd == null}');
     if (!_isAdLoaded || _rewardedAd == null) {
-      print('⚠️ Ad is not ready. Check internet or try later.');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ad is not ready yet. Please try again later.')),
       );

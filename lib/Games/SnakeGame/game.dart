@@ -1,3 +1,5 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../services/auth_service.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -82,43 +84,43 @@ class _GamePageState extends State<Game> {
         (position.dy <= lowerBoundY && direction == Direction.up);
   }
 
-  void showGameOverDialog() {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder: (ctx) {
-        return AlertDialog(
-          backgroundColor: Colors.red,
-          shape: RoundedRectangleBorder(
-              side: BorderSide(
-                color: Colors.black,
-                width: 3.0,
-              ),
-              borderRadius: BorderRadius.all(Radius.circular(10.0))),
-          title: Text(
-            "Game Over",
-            style: TextStyle(color: Colors.white),
-          ),
-          content: Text(
-            "Your game is over but you played well. Your score is $score.",
-            style: TextStyle(color: Colors.white),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                restart();
-              },
-              child: Text(
-                "Restart",
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-          ],
-        );
-      },
-    );
+  void showGameOverDialog() async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final docRef = AuthService().firestore.collection('users').doc(user.uid);
+    final docSnap = await docRef.get();
+    final currentScore = docSnap.data()?['score'] ?? 0;
+    final updatedScore = currentScore + score;
+    await docRef.update({'score': updatedScore});
   }
+
+  showDialog(
+    barrierDismissible: false,
+    context: context,
+    builder: (ctx) {
+      return AlertDialog(
+        backgroundColor: Colors.red,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: Colors.black, width: 3.0),
+          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+        ),
+        title: Text("Game Over", style: TextStyle(color: Colors.white)),
+        content: Text("Your game is over but you played well. Your score is $score.",
+            style: TextStyle(color: Colors.white)),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              restart();
+            },
+            child: Text("Restart", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
   Offset getNextPosition(Offset position) {
     if (detectCollision(position)) {

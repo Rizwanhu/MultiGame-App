@@ -8,8 +8,13 @@ import 'profile_screen.dart';
 import '../components/media_grid.dart';
 import 'ads_screen.dart';
 import '../theme/theme_provider.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
@@ -22,7 +27,7 @@ class MultiGameApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    
+
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(),
@@ -40,15 +45,45 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   int currentIndex = 0;
-  List<IconData> icons = [Icons.home, Icons.bar_chart, Icons.person];
-  List<String> labels = ["Home", "Leaderboard", "Profile"];
   double volumeValue = 50.0;
   bool isMusicOn = true;
   int userScore = 0;
 
+  final List<Map<String, dynamic>> games = [
+    {"name": "Card Flipper", "image": "assets/images/CardFlipGame/00.png"},
+    {"name": "Snake Game", "image": "assets/images/snake.png"},
+    {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
+    {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
+    {"name": "Darts", "image": "assets/images/darts.png"},
+    {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
+    {"name": "Darts", "image": "assets/images/darts.png"},
+    {"name": "Snake Game", "image": "assets/images/snake.png"},
+    {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
+    {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
+    {"name": "Darts", "image": "assets/images/darts.png"},
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUserScore();
+  }
+
+  Future<void> fetchUserScore() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      if (doc.exists && doc.data()!.containsKey('score')) {
+        setState(() {
+          userScore = doc['score'];
+        });
+      }
+    }
+  }
+
   void openDrawer() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    
+
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -59,10 +94,7 @@ class _MainScreenState extends State<MainScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    "Settings", 
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)
-                  ),
+                  Text("Settings", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -73,11 +105,7 @@ class _MainScreenState extends State<MainScreen> {
                           min: 0,
                           max: 100,
                           onChanged: (val) {
-                            setModalState(() {
-                              setState(() {
-                                volumeValue = val;
-                              });
-                            });
+                            setModalState(() => setState(() => volumeValue = val));
                           },
                         ),
                       ),
@@ -91,11 +119,7 @@ class _MainScreenState extends State<MainScreen> {
                       Switch(
                         value: isMusicOn,
                         onChanged: (val) {
-                          setModalState(() {
-                            setState(() {
-                              isMusicOn = val;
-                            });
-                          });
+                          setModalState(() => setState(() => isMusicOn = val));
                         },
                       ),
                     ],
@@ -121,30 +145,16 @@ class _MainScreenState extends State<MainScreen> {
     );
   }
 
-  List<Map<String, dynamic>> games = [
-    {"name": "Card Flipper", "image": "assets/images/CardFlipGame/00.png"},  // Add this as first game
-    {"name": "Snake Game", "image": "assets/images/snake.png"},
-    {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
-    {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
-    {"name": "Darts", "image": "assets/images/darts.png"},
-    {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
-    {"name": "Darts", "image": "assets/images/darts.png"},
-    {"name": "Snake Game", "image": "assets/images/snake.png"},
-    {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
-    {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
-    {"name": "Darts", "image": "assets/images/darts.png"},
-  ];
-
   @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
 
     return Scaffold(
-      backgroundColor: isDarkMode ? Color(0xFF121212) : Colors.white,  // Added explicit background color
+      backgroundColor: isDarkMode ? Color(0xFF121212) : Colors.white,
       appBar: AppBar(
-        backgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,  // Added background color
-        elevation: 0,  // Added to match theme style
+        backgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
+        elevation: 0,
         automaticallyImplyLeading: false,
         toolbarHeight: 45,
         title: Row(
@@ -164,10 +174,6 @@ class _MainScreenState extends State<MainScreen> {
                     offset: Offset(2, 2),
                   )
                 ],
-                decoration: TextDecoration.none,
-                decorationColor: Colors.yellow,
-                decorationStyle: TextDecorationStyle.solid,
-                decorationThickness: 6,
               ),
             ),
           ],
@@ -188,76 +194,67 @@ class _MainScreenState extends State<MainScreen> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: isDarkMode ? Colors.blue[900] : Colors.blue,  // Adjusted dark mode color
-              width: double.infinity,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Text(
-                    "SCORE: ",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+      body: RefreshIndicator(
+        onRefresh: fetchUserScore,
+        child: SingleChildScrollView(
+          physics: AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: isDarkMode ? Colors.blue[900] : Colors.blue,
+                width: double.infinity,
+                child: Row(
+                  children: [
+                    Text("SCORE: ",
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
-                  ),
-                  Text(
-                    userScore.toString(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                    Text(userScore.toString(),
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            
-            Container(
-              height: 150,
-              padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8), // Reduced horizontal padding from 20 to 12
-              child: const DiagonalMediaGrid(),
-            ),
-            
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: GridView.count(
-                physics: NeverScrollableScrollPhysics(),
-                shrinkWrap: true,
-                crossAxisCount: 2,
-                crossAxisSpacing: 16,
-                mainAxisSpacing: 16,
-                childAspectRatio: 1,
-                children: games.map((game) {
-                  return GestureDetector(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => GameDetailScreen(
-                            gameName: game["name"],
-                            gameImage: game["image"],
+              Container(
+                height: 150,
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: const DiagonalMediaGrid(),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: GridView.count(
+                  physics: NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1,
+                  children: games.map((game) {
+                    return GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => GameDetailScreen(
+                              gameName: game["name"],
+                              gameImage: game["image"],
+                            ),
                           ),
-                        ),
-                      );
-                    },
-                    child: GameCard(
-                      gameName: game["name"],
-                      imagePath: game["image"],
-                    ),
-                  );
-                }).toList(),
+                        );
+                      },
+                      child: GameCard(
+                        gameName: game["name"],
+                        imagePath: game["image"],
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-      bottomNavigationBar: Theme(  // Wrapped bottomNavigationBar with Theme
+      bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
           navigationBarTheme: NavigationBarThemeData(
             backgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
@@ -269,25 +266,19 @@ class _MainScreenState extends State<MainScreen> {
             if (index == 1) {
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => LeaderboardPage(initialIndex: index),
-                ),
+                MaterialPageRoute(builder: (context) => LeaderboardPage(initialIndex: index)),
                 (route) => false,
               );
             } else if (index == 2) {
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => AdsScreen(initialIndex: index),
-                ),
+                MaterialPageRoute(builder: (context) => AdsScreen(initialIndex: index)),
                 (route) => false,
               );
             } else if (index == 3) {
               Navigator.pushAndRemoveUntil(
                 context,
-                MaterialPageRoute(
-                  builder: (context) => ProfileScreen(),
-                ),
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
                 (route) => false,
               );
             } else {
@@ -312,10 +303,7 @@ class BlankScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(gameName)),
       body: Center(
-        child: Text(
-          "Blank screen for $gameName",
-          style: TextStyle(fontSize: 20),
-        ),
+        child: Text("Blank screen for $gameName", style: TextStyle(fontSize: 20)),
       ),
     );
   }
