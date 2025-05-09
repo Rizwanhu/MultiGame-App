@@ -1,5 +1,5 @@
-
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,64 +19,54 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   int userScore = 0;
   late int currentIndex;
-
-  final List<Map<String, dynamic>> scores = [
-    {
-      'name': 'Vic',
-      'score': 409392,
-      'image': 'https://i.pravatar.cc/100?img=1',
-    },
-    {
-      'name': 'Ksenia',
-      'score': 258339,
-      'image': 'https://i.pravatar.cc/100?img=2',
-    },
-    {
-      'name': 'Olesya',
-      'score': 238784,
-      'image': 'https://i.pravatar.cc/100?img=3',
-    },
-    {
-      'name': 'Sasha',
-      'score': 227632,
-      'image': 'https://i.pravatar.cc/100?img=4',
-    },
-    {
-      'name': 'Ilya',
-      'score': 58732,
-      'image': 'https://i.pravatar.cc/100?img=5',
-    },
-    {
-      'name': 'nesakosha',
-      'score': 25895,
-      'image': 'https://i.pravatar.cc/100?img=6',
-    },
-    {
-      'name': 'Player 7',
-      'score': 5216,
-      'image': 'https://i.pravatar.cc/100?img=7',
-    },
-  ];
+  List<Map<String, dynamic>> firestoreScores = [];
 
   @override
   void initState() {
     super.initState();
     currentIndex = widget.initialIndex;
-    fetchUserScore();
+    fetchUserData();
   }
 
-  Future<void> fetchUserScore() async {
+  Future<void> fetchUserData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
-      final snapshot = await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      if (snapshot.exists) {
-        final data = snapshot.data();
-        if (data != null && data.containsKey('score')) {
-          setState(() {
-            userScore = data['score'];
-          });
-        }
+      final userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+      if (userDoc.exists && userDoc.data() != null) {
+        setState(() {
+          userScore = userDoc['score'] ?? 0;
+        });
       }
+    }
+
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .orderBy('score', descending: true)
+        .limit(7)
+        .get();
+
+    final topUsers = querySnapshot.docs.map((doc) {
+      final data = doc.data();
+      return {
+        'name': data['username'] ?? 'Unknown',
+        'score': data['score'] ?? 0,
+        'image': data['photoUrl'],
+      };
+    }).toList();
+
+    setState(() {
+      firestoreScores = topUsers;
+    });
+  }
+
+  ImageProvider _buildProfileImage(String? imagePath) {
+    if (imagePath == null || imagePath.isEmpty) {
+      return AssetImage('assets/images/default_profile.png');
+    } else if (imagePath.startsWith('/')) {
+      return FileImage(File(imagePath));
+    } else {
+      return NetworkImage(imagePath);
     }
   }
 
@@ -86,7 +76,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Score: $userScore',
+          title: Text(
+            'Score: $userScore',
             style: TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
           ),
           centerTitle: true,
@@ -129,11 +120,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       ),
                     ),
                     Divider(),
-                    ...List.generate(scores.length, (index) {
-                      final item = scores[index];
+                    ...List.generate(firestoreScores.length, (index) {
+                      final item = firestoreScores[index];
                       final isTopThree = index < 3;
                       return Container(
-                        padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                        padding:
+                            EdgeInsets.symmetric(vertical: 6, horizontal: 10),
                         decoration: BoxDecoration(
                           color: isTopThree
                               ? Colors.blue.shade100.withOpacity(0.4)
@@ -141,14 +133,38 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                         ),
                         child: Row(
                           children: [
-                            Text('${index + 1}', style: TextStyle(fontSize: 20, color: Colors.blue[900], fontWeight: FontWeight.bold)),
+                            Text(
+                              '${index + 1}',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.blue[900],
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             SizedBox(width: 10),
-                            CircleAvatar(radius: 18, backgroundImage: NetworkImage(item['image'])),
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundImage:
+                                  _buildProfileImage(item['image']),
+                            ),
                             SizedBox(width: 10),
                             Expanded(
-                              child: Text(item['name'], style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
+                              child: Text(
+                                item['name'],
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
                             ),
-                            Text('${item['score']}', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                            Text(
+                              '${item['score']}',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       );
@@ -163,11 +179,23 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           currentIndex: currentIndex,
           onTap: (index) {
             if (index == 0) {
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => MainScreen()), (route) => false);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => MainScreen()),
+                (route) => false,
+              );
             } else if (index == 2) {
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => AdsScreen()), (route) => false);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => AdsScreen()),
+                (route) => false,
+              );
             } else if (index == 3) {
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_) => ProfileScreen()), (route) => false);
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (_) => ProfileScreen()),
+                (route) => false,
+              );
             }
           },
         ),

@@ -55,39 +55,46 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> pickImage() async {
-    final picker = ImagePicker();
-    final source = await showDialog<ImageSource>(
-      context: context,
-      builder: (ctx) => SimpleDialog(
-        title: const Text("Choose image source"),
-        children: [
-          SimpleDialogOption(
-            child: const Text("Camera"),
-            onPressed: () => Navigator.pop(ctx, ImageSource.camera),
-          ),
-          SimpleDialogOption(
-            child: const Text("Gallery"),
-            onPressed: () => Navigator.pop(ctx, ImageSource.gallery),
-          ),
-        ],
-      ),
-    );
-    if (source == null) return;
+  final picker = ImagePicker();
+  final source = await showDialog<ImageSource>(
+    context: context,
+    builder: (ctx) => SimpleDialog(
+      title: const Text("Choose image source"),
+      children: [
+        SimpleDialogOption(
+          child: const Text("Camera"),
+          onPressed: () => Navigator.pop(ctx, ImageSource.camera),
+        ),
+        SimpleDialogOption(
+          child: const Text("Gallery"),
+          onPressed: () => Navigator.pop(ctx, ImageSource.gallery),
+        ),
+      ],
+    ),
+  );
+  if (source == null) return;
 
-    final XFile? picked = await picker.pickImage(source: source, imageQuality: 70);
-    if (picked == null) return;
+  final XFile? picked = await picker.pickImage(source: source, imageQuality: 70);
+  if (picked == null) return;
 
-    final directory = await getApplicationDocumentsDirectory();
-    final path = '${directory.path}/profile_image.jpg';
-    final savedImage = await File(picked.path).copy(path);
+  final directory = await getApplicationDocumentsDirectory();
+  final path = '${directory.path}/profile_image.jpg';
+  final savedImage = await File(picked.path).copy(path);
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('localImagePath', savedImage.path);
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('localImagePath', savedImage.path);
 
-    setState(() {
-      localImageFile = savedImage;
+  // Save image path to Firestore so it can be shown on Leaderboard
+  if (user != null) {
+    await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
+      'photoUrl': savedImage.path,
     });
   }
+
+  setState(() {
+    localImageFile = savedImage;
+  });
+}
 
   Future<void> loadLocalImage() async {
     final prefs = await SharedPreferences.getInstance();
