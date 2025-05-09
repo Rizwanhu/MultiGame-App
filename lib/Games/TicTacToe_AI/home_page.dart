@@ -58,8 +58,11 @@ class _HomePageState extends State<HomePage> {
         if (buttonsList.every((p) => p.text != "")) {
           showDialog(
               context: context,
-              builder: (_) => new CustomDialog("Game Tied",
-                  "Press the reset button to start again.", resetGame));
+              barrierDismissible: false,
+              builder: (_) => CustomDialog(
+                  "Game Tied",
+                  "Would you like to play again or exit?",
+                  resetGame));
         } else {
           activePlayer == 2 ? autoPlay() : null;
         }
@@ -68,20 +71,92 @@ class _HomePageState extends State<HomePage> {
   }
 
   void autoPlay() {
+    // Check if AI can win
+    var move = _findWinningMove(player2);
+    if (move != -1) {
+      int i = buttonsList.indexWhere((p) => p.id == move);
+      playGame(buttonsList[i]);
+      return;
+    }
+
+    // Check if player is about to win and block
+    move = _findWinningMove(player1);
+    if (move != -1) {
+      int i = buttonsList.indexWhere((p) => p.id == move);
+      playGame(buttonsList[i]);
+      return;
+    }
+
+    // Take center if available
+    if (!player1.contains(5) && !player2.contains(5)) {
+      int i = buttonsList.indexWhere((p) => p.id == 5);
+      playGame(buttonsList[i]);
+      return;
+    }
+
+    // Take corners if available (more strategic)
+    var corners = [1, 3, 7, 9];
+    var availableCorners = corners.where((c) => 
+      !player1.contains(c) && !player2.contains(c)).toList();
+      
+    if (availableCorners.isNotEmpty) {
+      var r = Random();
+      var cornerIndex = r.nextInt(availableCorners.length);
+      int i = buttonsList.indexWhere((p) => p.id == availableCorners[cornerIndex]);
+      playGame(buttonsList[i]);
+      return;
+    }
+
+    // Otherwise pick a random available cell
     var emptyCells = <int>[];
-    var list = new List.generate(9, (i) => i + 1);
+    var list = List.generate(9, (i) => i + 1);
     for (var cellID in list) {
       if (!(player1.contains(cellID) || player2.contains(cellID))) {
         emptyCells.add(cellID);
       }
     }
 
-    var r = new Random();
-    var randIndex = r.nextInt(emptyCells.length-1);
-    var cellID = emptyCells[randIndex];
-    int i = buttonsList.indexWhere((p)=> p.id == cellID);
-    playGame(buttonsList[i]);
+    if (emptyCells.isNotEmpty) {
+      var r = Random();
+      var randIndex = r.nextInt(emptyCells.length);
+      var cellID = emptyCells[randIndex];
+      int i = buttonsList.indexWhere((p) => p.id == cellID);
+      playGame(buttonsList[i]);
+    }
+  }
 
+  // Helper method to find winning move for a player
+  int _findWinningMove(List<int> playerPositions) {
+    // All possible winning combinations
+    var winPatterns = [
+      [1, 2, 3], [4, 5, 6], [7, 8, 9], // rows
+      [1, 4, 7], [2, 5, 8], [3, 6, 9], // columns
+      [1, 5, 9], [3, 5, 7]             // diagonals
+    ];
+
+    // Check each winning pattern
+    for (var pattern in winPatterns) {
+      // Count how many positions in this pattern the player already has
+      var count = 0;
+      var emptyPosition = -1;
+      
+      for (var pos in pattern) {
+        if (playerPositions.contains(pos)) {
+          count++;
+        } else if (!player1.contains(pos) && !player2.contains(pos)) {
+          // This position is empty
+          emptyPosition = pos;
+        }
+      }
+      
+      // If player has 2 positions in a winning pattern and third is empty,
+      // taking that position either wins (for AI) or blocks (for player)
+      if (count == 2 && emptyPosition != -1) {
+        return emptyPosition;
+      }
+    }
+    
+    return -1;
   }
 
   int checkWinner() {
@@ -152,13 +227,19 @@ class _HomePageState extends State<HomePage> {
       if (winner == 1) {
         showDialog(
             context: context,
-            builder: (_) => new CustomDialog("Player 1 Won",
-                "Press the reset button to start again.", resetGame));
+            barrierDismissible: false,
+            builder: (_) => CustomDialog(
+                "Player 1 Won",
+                "Would you like to play again or go back?",
+                resetGame));
       } else {
         showDialog(
             context: context,
-            builder: (_) => new CustomDialog("Player 2 Won",
-                "Press the reset button to start again.", resetGame));
+            barrierDismissible: false,
+            builder: (_) => CustomDialog(
+                "Player 2 Won",
+                "Would you like to play again or go back?",
+                resetGame));
       }
     }
 
@@ -166,7 +247,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   void resetGame() {
-    if (Navigator.canPop(context)) Navigator.pop(context);
+    // Make sure to close any open dialogs first
+    if (Navigator.canPop(context)) {
+      Navigator.of(context).pop();
+    }
+    
+    // Then reset the game state
     setState(() {
       buttonsList = doInit();
     });

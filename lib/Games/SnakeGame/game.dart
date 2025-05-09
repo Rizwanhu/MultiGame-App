@@ -33,6 +33,7 @@ class _GamePageState extends State<Game> {
   double speed = 0.05;
 
   int score = 0;
+  bool isGameOver = false;
 
   @override
   void initState() {
@@ -85,47 +86,76 @@ class _GamePageState extends State<Game> {
   }
 
   void showGameOverDialog() async {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user != null) {
-    final docRef = AuthService().firestore.collection('users').doc(user.uid);
-    final docSnap = await docRef.get();
-    final currentScore = docSnap.data()?['score'] ?? 0;
-    final updatedScore = currentScore + score;
-    await docRef.update({'score': updatedScore});
-  }
+    // Set game over flag
+    isGameOver = true;
+    
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final docRef = AuthService().firestore.collection('users').doc(user.uid);
+      final docSnap = await docRef.get();
+      final currentScore = docSnap.data()?['score'] ?? 0;
+      final updatedScore = currentScore + score;
+      await docRef.update({'score': updatedScore});
+    }
 
-  showDialog(
-    barrierDismissible: false,
-    context: context,
-    builder: (ctx) {
-      return AlertDialog(
-        backgroundColor: Colors.red,
-        shape: RoundedRectangleBorder(
-          side: BorderSide(color: Colors.black, width: 3.0),
-          borderRadius: BorderRadius.all(Radius.circular(10.0)),
-        ),
-        title: Text("Game Over", style: TextStyle(color: Colors.white)),
-        content: Text("Your game is over but you played well. Your score is $score.",
-            style: TextStyle(color: Colors.white)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              restart();
-            },
-            child: Text("Restart", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+    if (!mounted) return;
+
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          backgroundColor: Colors.red,
+          shape: RoundedRectangleBorder(
+            side: BorderSide(color: Colors.black, width: 3.0),
+            borderRadius: BorderRadius.all(Radius.circular(10.0)),
           ),
-        ],
-      );
-    },
-  );
-}
-
+          title: Text("Game Over", style: TextStyle(color: Colors.white)),
+          content: Text("Your game is over. Your score is $score.",
+              style: TextStyle(color: Colors.white)),
+          actions: [
+            // Restart button
+            TextButton(
+              onPressed: () {
+                // First close the dialog
+                Navigator.of(context).pop();
+                // Then restart the game
+                if (mounted) {
+                  restart();
+                }
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+              child: Text("Restart", style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            // Exit button
+            TextButton(
+              onPressed: () {
+                // Close the dialog first
+                Navigator.of(context).pop();
+                // Then navigate back to previous screen
+                Navigator.of(context).pop();
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.deepOrange,
+                foregroundColor: Colors.white,
+              ),
+              child: Text("Exit", style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Offset getNextPosition(Offset position) {
     if (detectCollision(position)) {
       timer?.cancel();
-      Future.delayed(Duration(milliseconds: 500), showGameOverDialog);
+      if (!isGameOver) {
+        Future.delayed(Duration(milliseconds: 500), showGameOverDialog);
+      }
       return position;
     }
 
@@ -154,8 +184,10 @@ class _GamePageState extends State<Game> {
   }
 
   List<Piece> getPieces() {
-    draw();
-    drawFood();
+    if (!isGameOver) {
+      draw();
+      drawFood();
+    }
 
     return List.generate(length, (i) {
       if (i >= positions.length) return Piece(posX: 0, posY: 0, size: step, color: Colors.transparent);
@@ -171,6 +203,8 @@ class _GamePageState extends State<Game> {
   Widget getControls() {
     return ControlPanel(
       onTapped: (Direction newDirection) {
+        if (isGameOver) return;
+        
         if ((direction == Direction.left && newDirection == Direction.right) ||
             (direction == Direction.right && newDirection == Direction.left) ||
             (direction == Direction.up && newDirection == Direction.down) ||
@@ -190,7 +224,9 @@ class _GamePageState extends State<Game> {
   void changeSpeed() {
     timer?.cancel();
     timer = Timer.periodic(Duration(milliseconds: (200 ~/ speed).toInt()), (timer) {
-      setState(() {});
+      if (mounted) {
+        setState(() {});
+      }
     });
   }
 
@@ -207,6 +243,7 @@ class _GamePageState extends State<Game> {
 
   void restart() {
     setState(() {
+      isGameOver = false;
       score = 0;
       length = 5;
       positions = [];
