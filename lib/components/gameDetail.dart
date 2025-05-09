@@ -137,23 +137,40 @@ class GameDetailScreen extends StatelessWidget {
                     icon: Icons.videogame_asset,
                     label: "PLAY\nGAME",
                     onTap: () {
-                      if (gameName == "Card Flipper") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => CardFlipperGame()),
-                        );
-                      } else if (gameName == "Snake Game") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => GamePage()),
-                        );
-                      } else if (gameName == "Tic Tac Toe") {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => MyApp()),
-                        );
-                      }
-                    },
+  if (gameName == "Card Flipper") {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => CardFlipperGame()),
+    );
+  } else if (gameName == "Snake Game") {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => GamePage()),
+    );
+  } else if (gameName == "Tic Tac Toe") {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => MyApp()),
+    );
+  } else {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Game Unavailable"),
+          content: Text("This game is not available currently."),
+          actions: [
+            TextButton(
+              child: Text("OK"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+},
+
                     isDarkMode: isDarkMode,
                   ),
                   const SizedBox(height: 30),

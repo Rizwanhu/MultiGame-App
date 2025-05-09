@@ -102,6 +102,9 @@ flutter:
     - assets/images/CardFlipGame/010.png
     - assets/images/google_logo.png 
     - assets/images/default_profile.png
+    - assets/images/squid.png
+    - assets/images/runner.png
+    - assets/images/quiz.png
     
   # Add fonts section
   fonts:

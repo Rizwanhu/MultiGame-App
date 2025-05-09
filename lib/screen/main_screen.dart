@@ -55,12 +55,9 @@ class _MainScreenState extends State<MainScreen> {
     {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
     {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
     {"name": "Darts", "image": "assets/images/darts.png"},
-    {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
-    {"name": "Darts", "image": "assets/images/darts.png"},
-    {"name": "Snake Game", "image": "assets/images/snake.png"},
-    {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
-    {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
-    {"name": "Darts", "image": "assets/images/darts.png"},
+    {"name": "Squid Game", "image": "assets/images/squid.png"},
+    {"name": "Runner Game", "image": "assets/images/runner.png"},
+    {"name": "Quiz Game", "image": "assets/images/quiz.png"},
   ];
 
   @override
