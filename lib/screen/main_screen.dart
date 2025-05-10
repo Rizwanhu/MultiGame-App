@@ -11,6 +11,9 @@ import '../theme/theme_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:just_audio/just_audio.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../audio_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -43,11 +46,12 @@ class MainScreen extends StatefulWidget {
   _MainScreenState createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> {
+class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   int currentIndex = 0;
   double volumeValue = 50.0;
   bool isMusicOn = true;
   int userScore = 0;
+  late AudioService audioService;
 
   final List<Map<String, dynamic>> games = [
     {"name": "Card Flipper", "image": "assets/images/CardFlipGame/00.png"},
@@ -63,7 +67,37 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    
+    // Initialize audio service
+    audioService = AudioService();
+    _initializeAudio();
+    
     fetchUserScore();
+  }
+  
+  // Initialize audio and load saved preferences
+  Future<void> _initializeAudio() async {
+    await audioService.initialize();
+    // Update UI state after loading preferences
+    setState(() {
+      volumeValue = audioService.getVolume();
+      isMusicOn = audioService.isMusicOn();
+    });
+  }
+  
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Handle app lifecycle changes like going to background or returning
+    audioService.handleLifecycleChange(state);
+    super.didChangeAppLifecycleState(state);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    audioService.dispose();
+    super.dispose();
   }
 
   Future<void> fetchUserScore() async {
@@ -102,7 +136,12 @@ class _MainScreenState extends State<MainScreen> {
                           min: 0,
                           max: 100,
                           onChanged: (val) {
-                            setModalState(() => setState(() => volumeValue = val));
+                            setModalState(() {
+                              volumeValue = val;
+                              // Apply volume change in real-time
+                              audioService.setVolume(val);
+                            });
+                            setState(() => volumeValue = val);
                           },
                         ),
                       ),
@@ -116,7 +155,12 @@ class _MainScreenState extends State<MainScreen> {
                       Switch(
                         value: isMusicOn,
                         onChanged: (val) {
-                          setModalState(() => setState(() => isMusicOn = val));
+                          setModalState(() {
+                            isMusicOn = val;
+                            // Toggle music on/off
+                            audioService.toggleMusic(val);
+                          });
+                          setState(() => isMusicOn = val);
                         },
                       ),
                     ],

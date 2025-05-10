@@ -86,7 +86,7 @@ class _GamePageState extends State<Game> {
   }
 
   void showGameOverDialog() async {
-    // Set game over flag
+  
     isGameOver = true;
     
     final user = FirebaseAuth.instance.currentUser;

@@ -37,6 +37,8 @@ dependencies:
   google_sign_in: ^6.1.5
   image_picker: ^1.0.4
   path: ^1.8.3
+  just_audio: ^0.9.34  # For playing audio
+  audio_session: ^0.1.16  # For managing audio sessions
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -105,6 +107,8 @@ flutter:
     - assets/images/squid.png
     - assets/images/runner.png
     - assets/images/quiz.png
+    - assets/audio/background_music.mp3
+    
     
   # Add fonts section
   fonts:

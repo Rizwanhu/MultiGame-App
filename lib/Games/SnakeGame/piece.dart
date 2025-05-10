@@ -20,7 +20,7 @@ class Piece extends StatefulWidget {
 }
 
 class _PieceState extends State<Piece> with SingleTickerProviderStateMixin {
-  late AnimationController _animationController; // ✅ FIXED: Add 'late'
+  late AnimationController _animationController; 
 
   @override
   void initState() {
@@ -51,17 +51,17 @@ class _PieceState extends State<Piece> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: (widget.posX ?? 0).toDouble(), // ✅ FIXED: Handle null with '??'
-      top: (widget.posY ?? 0).toDouble(),  // ✅ FIXED: Handle null with '??'
+      left: (widget.posX ?? 0).toDouble(), 
+      top: (widget.posY ?? 0).toDouble(),  
       child: Opacity(
         opacity: widget.isAnimated ? _animationController.value : 1.0,
         child: Container(
-          width: (widget.size ?? 50).toDouble(),  // ✅ FIXED: Handle null with '??'
-          height: (widget.size ?? 50).toDouble(), // ✅ FIXED: Handle null with '??'
+          width: (widget.size ?? 50).toDouble(),  
+          height: (widget.size ?? 50).toDouble(), 
           decoration: BoxDecoration(
             color: widget.color,
             borderRadius: BorderRadius.all(
-              Radius.circular((widget.size ?? 50).toDouble()), // ✅ FIXED: Handle null with '??'
+              Radius.circular((widget.size ?? 50).toDouble()), 
             ),
             border: Border.all(color: Colors.black, width: 2.0),
           ),
