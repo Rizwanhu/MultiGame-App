@@ -107,6 +107,11 @@ flutter:
     - assets/images/squid.png
     - assets/images/runner.png
     - assets/images/quiz.png
+    - assets/images/badges/diamond.png
+    - assets/images/badges/gold.png
+    - assets/images/badges/silver.png
+    - assets/images/badges/bronze.png
+
     - assets/audio/background_music.mp3
     
     

@@ -282,6 +282,10 @@ class _AdsScreenState extends State<AdsScreen> {
                 MaterialPageRoute(builder: (context) => ProfileScreen()),
                 (route) => false,
               );
+            } else {
+              setState(() {
+                currentIndex = index;
+              });
             }
           },
         ),

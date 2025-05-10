@@ -70,6 +70,13 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     }
   }
 
+  String getBadgeAsset(int score) {
+    if (score >= 1500) return 'assets/images/badges/diamond.png';
+    if (score >= 1000) return 'assets/images/badges/gold.png';
+    if (score >= 500) return 'assets/images/badges/silver.png';
+    return 'assets/images/badges/bronze.png';
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -124,8 +131,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                       final item = firestoreScores[index];
                       final isTopThree = index < 3;
                       return Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                        padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
                         decoration: BoxDecoration(
                           color: isTopThree
                               ? Colors.blue.shade100.withOpacity(0.4)
@@ -144,8 +150,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             SizedBox(width: 10),
                             CircleAvatar(
                               radius: 18,
-                              backgroundImage:
-                                  _buildProfileImage(item['image']),
+                              backgroundImage: _buildProfileImage(item['image']),
                             ),
                             SizedBox(width: 10),
                             Expanded(
@@ -158,12 +163,22 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                 ),
                               ),
                             ),
-                            Text(
-                              '${item['score']}',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            Row(
+                              children: [
+                                Image.asset(
+                                  getBadgeAsset(item['score']),
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  '${item['score']}',
+                                  style: TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -196,6 +211,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                 MaterialPageRoute(builder: (_) => ProfileScreen()),
                 (route) => false,
               );
+            } else {
+              setState(() {
+                currentIndex = index;
+              });
             }
           },
         ),
