@@ -1,5 +1,6 @@
-import 'dart:io';
+// ... [All your existing imports unchanged]
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -55,46 +56,45 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> pickImage() async {
-  final picker = ImagePicker();
-  final source = await showDialog<ImageSource>(
-    context: context,
-    builder: (ctx) => SimpleDialog(
-      title: const Text("Choose image source"),
-      children: [
-        SimpleDialogOption(
-          child: const Text("Camera"),
-          onPressed: () => Navigator.pop(ctx, ImageSource.camera),
-        ),
-        SimpleDialogOption(
-          child: const Text("Gallery"),
-          onPressed: () => Navigator.pop(ctx, ImageSource.gallery),
-        ),
-      ],
-    ),
-  );
-  if (source == null) return;
+    final picker = ImagePicker();
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text("Choose image source"),
+        children: [
+          SimpleDialogOption(
+            child: const Text("Camera"),
+            onPressed: () => Navigator.pop(ctx, ImageSource.camera),
+          ),
+          SimpleDialogOption(
+            child: const Text("Gallery"),
+            onPressed: () => Navigator.pop(ctx, ImageSource.gallery),
+          ),
+        ],
+      ),
+    );
+    if (source == null) return;
 
-  final XFile? picked = await picker.pickImage(source: source, imageQuality: 70);
-  if (picked == null) return;
+    final XFile? picked = await picker.pickImage(source: source, imageQuality: 70);
+    if (picked == null) return;
 
-  final directory = await getApplicationDocumentsDirectory();
-  final path = '${directory.path}/profile_image.jpg';
-  final savedImage = await File(picked.path).copy(path);
+    final directory = await getApplicationDocumentsDirectory();
+    final path = '${directory.path}/profile_image.jpg';
+    final savedImage = await File(picked.path).copy(path);
 
-  final prefs = await SharedPreferences.getInstance();
-  await prefs.setString('localImagePath', savedImage.path);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('localImagePath', savedImage.path);
 
-  // Save image path to Firestore so it can be shown on Leaderboard
-  if (user != null) {
-    await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
-      'photoUrl': savedImage.path,
+    if (user != null) {
+      await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
+        'photoUrl': savedImage.path,
+      });
+    }
+
+    setState(() {
+      localImageFile = savedImage;
     });
   }
-
-  setState(() {
-    localImageFile = savedImage;
-  });
-}
 
   Future<void> loadLocalImage() async {
     final prefs = await SharedPreferences.getInstance();
@@ -106,12 +106,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  // ⭐ Get badge image path based on score
+  String? getBadgeImagePath(int? score) {
+    if (score == null) return null;
+    if (score >= 1500) return 'assets/images/badges/diamond.png';
+    if (score >= 800) return 'assets/images/badges/gold.png';
+    if (score >= 300) return 'assets/images/badges/silver.png';
+    return 'assets/images/badges/bronze.png';
+  }
+  String getBadgeName(int score) {
+  if (score >= 1500) return "Diamond";
+  if (score >= 800) return "Gold";
+  if (score >= 300) return "Silver";
+  return "Bronze";
+}
+
   @override
   Widget build(BuildContext context) {
-    // Check if dark mode is enabled
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-    
-    // Colors based on theme
+
     final primaryColor = isDarkMode ? const Color(0xFF158FAD) : const Color(0xFF0B7996);
     final cardColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     final textPrimaryColor = isDarkMode ? Colors.white : Colors.black87;
@@ -122,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       backgroundColor: scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text("Profile", style: TextStyle(color: isDarkMode ? Colors.white : Colors.white)),
+        title: Text("Profile", style: TextStyle(color: Colors.white)),
         backgroundColor: scaffoldBackgroundColor,
         elevation: 0,
       ),
@@ -131,7 +144,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           : SingleChildScrollView(
               child: Column(
                 children: [
-                  // Profile card section
                   Container(
                     margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(20),
@@ -187,7 +199,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                         ),
-                        // Optional: Display score if needed
                         if (score != null) ...[
                           const SizedBox(height: 16),
                           Container(
@@ -200,11 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  Icons.star_rounded,
-                                  color: primaryColor,
-                                  size: 20,
-                                ),
+                                Icon(Icons.star_rounded, color: primaryColor, size: 20),
                                 const SizedBox(width: 6),
                                 Text(
                                   "$score points",
@@ -217,12 +224,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ],
                             ),
                           ),
+                          const SizedBox(height: 10),
+                          if (getBadgeImagePath(score) != null) ...[
+  Image.asset(
+    getBadgeImagePath(score!)!,
+    height: 60,
+  ),
+  const SizedBox(height: 6),
+  Text(
+    getBadgeName(score!),
+    style: TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+      color: textPrimaryColor,
+    ),
+  ),
+],
+
                         ],
                       ],
                     ),
                   ),
-
-                  // Menu items
+                  // Menu section
                   Container(
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
@@ -238,7 +261,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     child: Column(
                       children: [
-                        // Privacy Policy Item
                         MenuItemTile(
                           icon: Icons.privacy_tip,
                           title: "Privacy Policy",
@@ -250,10 +272,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           isDarkMode: isDarkMode,
                         ),
-                        
                         const Divider(height: 1, thickness: 0.5, color: Colors.white24),
-                        
-                        // Log Out Item
                         MenuItemTile(
                           icon: Icons.logout,
                           title: "Log Out",
@@ -270,7 +289,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  
                   const SizedBox(height: 20),
                 ],
               ),
@@ -296,14 +314,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
               MaterialPageRoute(builder: (context) => AdsScreen()),
               (route) => false,
             );
-          }
+          } else {
+              setState(() {
+                currentIndex = index;
+              });
+            }
         },
       ),
     );
   }
 }
 
-// Custom menu item widget
+// MenuItemTile widget (unchanged)
 class MenuItemTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -311,7 +333,6 @@ class MenuItemTile extends StatelessWidget {
   final Widget? trailing;
   final bool showChevron;
   final Color? textColor;
-
   final bool isDarkMode;
 
   const MenuItemTile({

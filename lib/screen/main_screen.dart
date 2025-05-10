@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'Leaderboard.dart';
@@ -11,6 +13,7 @@ import '../theme/theme_provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:async';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +52,14 @@ class _MainScreenState extends State<MainScreen> {
   bool isMusicOn = true;
   int userScore = 0;
 
+  int currentDay = 1;
+  DateTime? lastClaimed;
+  Duration timeUntilNext = Duration.zero;
+  Timer? timer;
+  bool rewardAvailable = false;
+
+  final rewardScores = [0, 25, 50, 75, 100, 125, 150, 200]; // index 1-7 used
+
   final List<Map<String, dynamic>> games = [
     {"name": "Card Flipper", "image": "assets/images/CardFlipGame/00.png"},
     {"name": "Snake Game", "image": "assets/images/snake.png"},
@@ -64,19 +75,94 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     fetchUserScore();
+    startTimer();
+  }
+
+  @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
   }
 
   Future<void> fetchUserScore() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
-      if (doc.exists && doc.data()!.containsKey('score')) {
+      if (doc.exists) {
+        final data = doc.data()!;
         setState(() {
-          userScore = doc['score'];
+          userScore = data['score'] ?? 0;
+          lastClaimed = data['lastClaimed']?.toDate();
+          currentDay = data['rewardDay'] ?? 1;
         });
+        checkRewardStatus();
       }
     }
   }
+
+  void checkRewardStatus() {
+    final now = DateTime.now();
+    if (lastClaimed == null || now.difference(lastClaimed!).inHours >= 48) {
+      // Missed a day
+      currentDay = 1;
+      rewardAvailable = true;
+    } else if (now.day != lastClaimed!.day) {
+      rewardAvailable = true;
+    } else {
+      rewardAvailable = false;
+    }
+
+    final nextReset = DateTime(now.year, now.month, now.day + 1);
+    timeUntilNext = nextReset.difference(now);
+  }
+
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (_) {
+      setState(() {
+        checkRewardStatus();
+        timeUntilNext -= Duration(seconds: 1);
+      });
+    });
+  }
+
+  Future<void> claimReward() async {
+  if (!rewardAvailable) return;
+
+  final user = FirebaseAuth.instance.currentUser;
+  if (user == null) return;
+
+  final scoreToAdd = rewardScores[currentDay];
+
+  final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
+  await userDoc.update({
+    'score': FieldValue.increment(scoreToAdd),
+    'lastClaimed': Timestamp.now(),
+    'rewardDay': currentDay < 7 ? currentDay + 1 : 1,
+  });
+
+  setState(() {
+    userScore += scoreToAdd;
+    lastClaimed = DateTime.now();
+    currentDay = currentDay < 7 ? currentDay + 1 : 1;
+    rewardAvailable = false;
+  });
+
+  
+  showDialog(
+    context: context,
+    builder: (_) => AlertDialog(
+      title: Text("🎉 Congratulations!"),
+      content: Text("You received +$scoreToAdd points!"),
+      actions: [
+        TextButton(
+          child: Text("OK"),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+      ],
+    ),
+  );
+}
+
 
   void openDrawer() {
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
@@ -204,14 +290,40 @@ class _MainScreenState extends State<MainScreen> {
                 child: Row(
                   children: [
                     Text("SCORE: ",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                     Text(userScore.toString(),
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
                   ],
                 ),
               ),
+
+              // Daily Reward Container
+              Container(
+                margin: EdgeInsets.all(12),
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.orange[100],
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.deepOrange),
+                ),
+                child: Column(
+                  children: [
+                    Text("Daily Reward - Day $currentDay",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
+                    Text("Get +${rewardScores[currentDay]} points today!"),
+                    SizedBox(height: 8),
+                    rewardAvailable
+                        ? ElevatedButton(
+                            onPressed: claimReward,
+                            child: Text("Claim Reward"),
+                          )
+                        : Text("Next reward in: ${timeUntilNext.inHours.remainder(24).toString().padLeft(2, '0')}"
+                            "h ${timeUntilNext.inMinutes.remainder(60).toString().padLeft(2, '0')}m"),
+                  ],
+                ),
+              ),
+
               Container(
                 height: 150,
                 padding: EdgeInsets.symmetric(vertical: 8),
@@ -285,22 +397,6 @@ class _MainScreenState extends State<MainScreen> {
             }
           },
         ),
-      ),
-    );
-  }
-}
-
-class BlankScreen extends StatelessWidget {
-  final String gameName;
-
-  const BlankScreen({required this.gameName});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(gameName)),
-      body: Center(
-        child: Text("Blank screen for $gameName", style: TextStyle(fontSize: 20)),
       ),
     );
   }
