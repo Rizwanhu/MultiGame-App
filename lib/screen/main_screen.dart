@@ -17,6 +17,7 @@ import 'dart:async';
 import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../audio_service.dart';
+import 'challenges.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -364,6 +365,44 @@ Container(
           : Text("Next reward in: ${timeUntilNext.inHours.remainder(24).toString().padLeft(2, '0')}h "
               "${timeUntilNext.inMinutes.remainder(60).toString().padLeft(2, '0')}m"),
     ],
+  ),
+),
+
+GestureDetector(
+  onTap: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ChallengesScreen()),
+    );
+  },
+  child: Container(
+    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+    padding: EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.deepPurple.shade100,
+      borderRadius: BorderRadius.circular(15),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black26,
+          blurRadius: 6,
+          offset: Offset(0, 3),
+        ),
+      ],
+    ),
+    child: Row(
+      children: [
+        Icon(Icons.track_changes, color: Colors.deepPurple, size: 30),
+        SizedBox(width: 12),
+        Text(
+          "Challenges",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: Colors.deepPurple.shade800,
+          ),
+        ),
+      ],
+    ),
   ),
 ),
 
