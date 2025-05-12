@@ -2,6 +2,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import './custom_dailog.dart';
 import './game_button.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 
 class HomePage extends StatefulWidget {
   @override
@@ -56,14 +59,16 @@ class _HomePageState extends State<HomePage> {
       int winner = checkWinner();
       if (winner == -1) {
         if (buttonsList.every((p) => p.text != "")) {
-          showDialog(
-              context: context,
-              barrierDismissible: false,
-              builder: (_) => CustomDialog(
-                  "Game Tied",
-                  "Would you like to play again or exit?",
-                  resetGame));
-        } else {
+  _updateScore(25); // Draw = 25 points
+  showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => CustomDialog(
+          "Game Tied",
+          "It’s a draw! You won +25 points.\nWould you like to play again or exit?",
+          resetGame));
+}
+else {
           activePlayer == 2 ? autoPlay() : null;
         }
       }
@@ -223,25 +228,26 @@ class _HomePageState extends State<HomePage> {
       winner = 2;
     }
 
-    if (winner != -1) {
-      if (winner == 1) {
-        showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => CustomDialog(
-                "Player 1 Won",
-                "Would you like to play again or go back?",
-                resetGame));
-      } else {
-        showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (_) => CustomDialog(
-                "Player 2 Won",
-                "Would you like to play again or go back?",
-                resetGame));
-      }
-    }
+   if (winner != -1) {
+  if (winner == 1) {
+    _updateScore(50); // Player 1 wins
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => CustomDialog(
+            "Player 1 Won",
+            "You won +50 points!\nWould you like to play again or go back?",
+            resetGame));
+  } else {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => CustomDialog(
+            "Player 2 Won",
+            "Would you like to play again or go back?",
+            resetGame));
+  }
+}
 
     return winner;
   }
@@ -311,4 +317,15 @@ class _HomePageState extends State<HomePage> {
           ],
         ));
   }
+
+  Future<void> _updateScore(int points) async {
+  final user = FirebaseAuth.instance.currentUser;
+  if (user != null) {
+    final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final doc = await docRef.get();
+    final currentScore = doc.data()?['score'] ?? 0;
+    await docRef.update({'score': currentScore + points});
+  }
+}
+
 }

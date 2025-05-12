@@ -1,5 +1,4 @@
 import 'dart:ui';
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,55 +18,69 @@ class LeaderboardPage extends StatefulWidget {
 class _LeaderboardPageState extends State<LeaderboardPage> {
   int userScore = 0;
   late int currentIndex;
-  List<Map<String, dynamic>> firestoreScores = [];
+  List<Map<String, dynamic>> leaderboardUsers = [];
+  bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
     currentIndex = widget.initialIndex;
-    fetchUserData();
+    fetchLeaderboardData();
   }
 
-  Future<void> fetchUserData() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid != null) {
-      final userDoc =
-          await FirebaseFirestore.instance.collection('users').doc(uid).get();
-      if (userDoc.exists && userDoc.data() != null) {
-        setState(() {
-          userScore = userDoc['score'] ?? 0;
-        });
+  Future<void> fetchLeaderboardData() async {
+    try {
+      // Fetch current user's score
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .get();
+            
+        if (userDoc.exists) {
+          setState(() {
+            userScore = userDoc['score'] ?? 0;
+          });
+        }
       }
+
+      // Fetch top users
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('users')
+          .orderBy('score', descending: true)
+          .limit(7)
+          .get();
+
+      final topUsers = querySnapshot.docs.map((doc) {
+        final data = doc.data();
+        return {
+          'name': data['username'] ?? 'Unknown',
+          'score': data['score'] ?? 0,
+          'image': data['photoUrl'],
+          'uid': doc.id,
+        };
+      }).toList();
+
+      setState(() {
+        leaderboardUsers = topUsers;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Error fetching leaderboard: $e');
+      setState(() => isLoading = false);
     }
-
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('users')
-        .orderBy('score', descending: true)
-        .limit(7)
-        .get();
-
-    final topUsers = querySnapshot.docs.map((doc) {
-      final data = doc.data();
-      return {
-        'name': data['username'] ?? 'Unknown',
-        'score': data['score'] ?? 0,
-        'image': data['photoUrl'],
-      };
-    }).toList();
-
-    setState(() {
-      firestoreScores = topUsers;
-    });
   }
 
-  ImageProvider _buildProfileImage(String? imagePath) {
-    if (imagePath == null || imagePath.isEmpty) {
-      return AssetImage('assets/images/default_profile.png');
-    } else if (imagePath.startsWith('/')) {
-      return FileImage(File(imagePath));
-    } else {
-      return NetworkImage(imagePath);
-    }
+  Widget _buildProfileImage(String? imageUrl, {double radius = 18}) {
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: Colors.grey.shade300,
+      backgroundImage: imageUrl != null && imageUrl.isNotEmpty
+          ? NetworkImage(imageUrl)
+          : const AssetImage('assets/images/default_profile.png') as ImageProvider,
+      onBackgroundImageError: (_, __) => const AssetImage('assets/images/default_profile.png'),
+    );
   }
 
   String getBadgeAsset(int score) {
@@ -89,6 +102,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           ),
           centerTitle: true,
           automaticallyImplyLeading: false,
+          actions: [
+            IconButton(
+              icon: Icon(Icons.refresh),
+              onPressed: fetchLeaderboardData,
+            ),
+          ],
         ),
         body: Stack(
           children: [
@@ -105,88 +124,87 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
               ),
             ),
             Center(
-              child: Container(
-                margin: EdgeInsets.symmetric(horizontal: 20),
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.symmetric(vertical: 10),
-                      child: Text(
-                        'High Score',
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue[900],
-                        ),
+              child: isLoading
+                  ? CircularProgressIndicator()
+                  : Container(
+                      margin: EdgeInsets.symmetric(horizontal: 20),
+                      padding: EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 10),
+                            child: Text(
+                              'High Score',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue[900],
+                              ),
+                            ),
+                          ),
+                          Divider(),
+                          ...List.generate(leaderboardUsers.length, (index) {
+                            final user = leaderboardUsers[index];
+                            final isTopThree = index < 3;
+                            return Container(
+                              padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                              decoration: BoxDecoration(
+                                color: isTopThree
+                                    ? Colors.blue.shade100.withOpacity(0.4)
+                                    : Colors.transparent,
+                              ),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '${index + 1}',
+                                    style: TextStyle(
+                                      fontSize: 20,
+                                      color: Colors.blue[900],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(width: 10),
+                                  _buildProfileImage(user['image']),
+                                  SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      user['name'],
+                                      style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  Row(
+                                    children: [
+                                      Image.asset(
+                                        getBadgeAsset(user['score']),
+                                        width: 24,
+                                        height: 24,
+                                      ),
+                                      SizedBox(width: 6),
+                                      Text(
+                                        '${user['score']}',
+                                        style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          }),
+                        ],
                       ),
                     ),
-                    Divider(),
-                    ...List.generate(firestoreScores.length, (index) {
-                      final item = firestoreScores[index];
-                      final isTopThree = index < 3;
-                      return Container(
-                        padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: isTopThree
-                              ? Colors.blue.shade100.withOpacity(0.4)
-                              : Colors.transparent,
-                        ),
-                        child: Row(
-                          children: [
-                            Text(
-                              '${index + 1}',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.blue[900],
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            CircleAvatar(
-                              radius: 18,
-                              backgroundImage: _buildProfileImage(item['image']),
-                            ),
-                            SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                item['name'],
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Image.asset(
-                                  getBadgeAsset(item['score']),
-                                  width: 24,
-                                  height: 24,
-                                ),
-                                SizedBox(width: 6),
-                                Text(
-                                  '${item['score']}',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                ),
-              ),
             ),
           ],
         ),

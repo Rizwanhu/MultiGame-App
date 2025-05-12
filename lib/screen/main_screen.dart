@@ -61,7 +61,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   Timer? timer;
   bool rewardAvailable = false;
 
-  final rewardScores = [0, 25, 50, 75, 100, 125, 150, 200]; // index 1-7 used
+  final rewardScores = [0, 25, 50, 75, 100, 125, 150, 200];
   late AudioService audioService;
 
   final List<Map<String, dynamic>> games = [
@@ -338,38 +338,43 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-              // Daily Reward Container
-              Container(
-                margin: EdgeInsets.all(12),
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.orange[100],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.deepOrange),
-                ),
-                child: Column(
-                  children: [
-                    Text("Daily Reward - Day $currentDay",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 8),
-                    Text("Get +${rewardScores[currentDay]} points today!"),
-                    SizedBox(height: 8),
-                    rewardAvailable
-                        ? ElevatedButton(
-                            onPressed: claimReward,
-                            child: Text("Claim Reward"),
-                          )
-                        : Text("Next reward in: ${timeUntilNext.inHours.remainder(24).toString().padLeft(2, '0')}"
-                            "h ${timeUntilNext.inMinutes.remainder(60).toString().padLeft(2, '0')}m"),
-                  ],
-                ),
-              ),
+              // 1. Daily Reward Container - full width
+Container(
+  margin: EdgeInsets.symmetric(horizontal: 4, vertical: 12), // minimal left/right margin
+  padding: EdgeInsets.all(16),
+  width: double.infinity,
+  decoration: BoxDecoration(
+    color: const Color.fromARGB(255, 40, 43, 197),
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(color: const Color.fromARGB(255, 22, 4, 124)),
+  ),
+  child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text("Daily Reward - Day $currentDay",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+      SizedBox(height: 8),
+      Text("Get +${rewardScores[currentDay]} points today!"),
+      SizedBox(height: 8),
+      rewardAvailable
+          ? ElevatedButton(
+              onPressed: claimReward,
+              child: Text("Claim Reward"),
+            )
+          : Text("Next reward in: ${timeUntilNext.inHours.remainder(24).toString().padLeft(2, '0')}h "
+              "${timeUntilNext.inMinutes.remainder(60).toString().padLeft(2, '0')}m"),
+    ],
+  ),
+),
 
-              Container(
-                height: 150,
-                padding: EdgeInsets.symmetric(vertical: 8),
-                child: const DiagonalMediaGrid(),
-              ),
+// 2. DiagonalMediaGrid Container - full width
+Container(
+  height: 150,
+  width: double.infinity, // take all available width
+  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8), // minimal side padding
+  child: const DiagonalMediaGrid(),
+),
+
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: GridView.count(

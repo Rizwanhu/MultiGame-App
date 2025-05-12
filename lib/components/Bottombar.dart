@@ -39,8 +39,11 @@ class CustomBottomBar extends StatelessWidget {
               children: List.generate(icons.length, (index) {
                 bool isSelected = index == currentIndex;
                 return Expanded(
-                  child: GestureDetector(
+                  child: InkWell( // Wrap Icon+Text together
                     onTap: () => onTap(index),
+                    borderRadius: BorderRadius.circular(50),
+                    splashColor: Colors.transparent,
+                    highlightColor: Colors.transparent,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       mainAxisSize: MainAxisSize.min,
@@ -50,21 +53,27 @@ class CustomBottomBar extends StatelessWidget {
                           duration: Duration(milliseconds: 200),
                           height: isSelected ? 40 : 30,
                           width: isSelected ? 40 : 30,
-                          decoration: isSelected ? BoxDecoration(
-                            color: isDarkMode ? Colors.grey[800]! : Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: isDarkMode ? Colors.black26 : Colors.black12,
-                                blurRadius: 8,
-                              )
-                            ],
-                          ) : null,
+                          decoration: isSelected
+                              ? BoxDecoration(
+                                  color: isDarkMode ? Colors.grey[800]! : Colors.white,
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: isDarkMode ? Colors.black26 : Colors.black12,
+                                      blurRadius: 8,
+                                    )
+                                  ],
+                                )
+                              : null,
                           child: Icon(
                             icons[index],
-                            color: isSelected 
-                                ? isDarkMode ? Colors.blue[200]! : Colors.purple 
-                                : isDarkMode ? Colors.grey[500]! : Colors.grey,
+                            color: isSelected
+                                ? isDarkMode
+                                    ? Colors.blue[200]!
+                                    : Colors.purple
+                                : isDarkMode
+                                    ? Colors.grey[500]!
+                                    : Colors.grey,
                             size: isSelected ? 25 : 22,
                           ),
                         ),
@@ -75,9 +84,13 @@ class CustomBottomBar extends StatelessWidget {
                             labels[index],
                             style: TextStyle(
                               fontSize: 11,
-                              color: isSelected 
-                                  ? isDarkMode ? Colors.blue[200]! : Colors.purple
-                                  : isDarkMode ? Colors.grey[500]! : Colors.grey,
+                              color: isSelected
+                                  ? isDarkMode
+                                      ? Colors.blue[200]!
+                                      : Colors.purple
+                                  : isDarkMode
+                                      ? Colors.grey[500]!
+                                      : Colors.grey,
                               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
                             ),
                             maxLines: 1,
@@ -118,7 +131,7 @@ class NavBarPainter extends CustomPainter {
     final path = Path();
     final itemWidth = size.width / totalItems;
     final centerX = (itemWidth * selectedIndex) + (itemWidth / 2) - 30;
-    
+
     path.moveTo(0, 0);
     path.lineTo(centerX - 40, 0);
 
@@ -147,10 +160,10 @@ class NavBarPainter extends CustomPainter {
     path.close();
 
     canvas.drawShadow(
-      path, 
-      Colors.black.withOpacity(0.2), 
-      10, 
-      true
+      path,
+      Colors.black.withOpacity(0.2),
+      10,
+      true,
     );
     canvas.drawPath(path, paint);
   }

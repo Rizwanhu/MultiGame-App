@@ -1,11 +1,10 @@
-// ... [All your existing imports unchanged]
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:path/path.dart' as path;
 
 import 'package:app/components/Bottombar.dart';
 import 'package:app/screen/Ads_screen.dart';
@@ -25,88 +24,143 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? email;
   int? score;
   String? photoUrl;
-  File? localImageFile;
   bool isLoading = true;
   int currentIndex = 3;
+  bool isUploading = false;
 
   @override
   void initState() {
     super.initState();
     fetchUserData();
-    loadLocalImage();
   }
 
   Future<void> fetchUserData() async {
     if (user == null) return;
-    final doc = await FirebaseFirestore.instance.collection('users').doc(user!.uid).get();
-    final data = doc.data();
-    if (data != null) {
-      setState(() {
-        username = data['username'];
-        email = data['email'];
-        score = data['score'];
-        photoUrl = data['photoUrl'];
-        isLoading = false;
-      });
-    } else {
-      setState(() {
-        isLoading = false;
-      });
+    
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .get();
+          
+      if (doc.exists) {
+        final data = doc.data()!;
+        setState(() {
+          username = data['username'] ?? 'No name';
+          email = data['email'];
+          score = data['score'] ?? 0;
+          photoUrl = data['photoUrl'];
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching user data: $e');
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error loading profile data')),
+      );
     }
   }
 
-  Future<void> pickImage() async {
+  Future<void> pickImage({required ImageSource source}) async {
+    if (isUploading) return;
+    
     final picker = ImagePicker();
-    final source = await showDialog<ImageSource>(
+    try {
+      final XFile? picked = await picker.pickImage(
+        source: source,
+        imageQuality: 85,
+        maxWidth: 800,
+      );
+      if (picked == null) return;
+
+      setState(() => isUploading = true);
+      
+      // Create temporary file
+      final tempFile = File(picked.path);
+      
+      // Get file extension
+      final extension = path.extension(picked.path).toLowerCase();
+      
+      // Create storage reference with user's UID
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('profile_images/${user!.uid}$extension');
+
+      // Check if file exists and delete if it does
+      try {
+        await storageRef.getDownloadURL();
+        await storageRef.delete();
+      } catch (e) {
+        // File doesn't exist, proceed with upload
+      }
+
+      // Upload new file
+      await storageRef.putFile(tempFile);
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      // Update Firestore
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user!.uid)
+          .update({
+            'photoUrl': downloadUrl,
+            'lastUpdated': FieldValue.serverTimestamp(),
+          });
+
+      setState(() {
+        photoUrl = downloadUrl;
+        isUploading = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Profile picture updated!')),
+      );
+
+    } catch (e) {
+      print('Error uploading image: $e');
+      setState(() => isUploading = false);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to update: ${e.toString()}'),
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Future<void> _showImageSourceDialog() async {
+    return showDialog(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: const Text("Choose image source"),
-        children: [
-          SimpleDialogOption(
-            child: const Text("Camera"),
-            onPressed: () => Navigator.pop(ctx, ImageSource.camera),
-          ),
-          SimpleDialogOption(
-            child: const Text("Gallery"),
-            onPressed: () => Navigator.pop(ctx, ImageSource.gallery),
-          ),
-        ],
+      builder: (context) => AlertDialog(
+        title: Text("Select Image Source"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.camera_alt, color: Colors.blue),
+              title: Text("Take Photo"),
+              onTap: () {
+                Navigator.pop(context);
+                pickImage(source: ImageSource.camera);
+              },
+            ),
+            Divider(),
+            ListTile(
+              leading: Icon(Icons.photo_library, color: Colors.green),
+              title: Text("Choose from Gallery"),
+              onTap: () {
+                Navigator.pop(context);
+                pickImage(source: ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
       ),
     );
-    if (source == null) return;
-
-    final XFile? picked = await picker.pickImage(source: source, imageQuality: 70);
-    if (picked == null) return;
-
-    final directory = await getApplicationDocumentsDirectory();
-    final path = '${directory.path}/profile_image.jpg';
-    final savedImage = await File(picked.path).copy(path);
-
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('localImagePath', savedImage.path);
-
-    if (user != null) {
-      await FirebaseFirestore.instance.collection('users').doc(user!.uid).update({
-        'photoUrl': savedImage.path,
-      });
-    }
-
-    setState(() {
-      localImageFile = savedImage;
-    });
   }
 
-  Future<void> loadLocalImage() async {
-    final prefs = await SharedPreferences.getInstance();
-    final path = prefs.getString('localImagePath');
-    if (path != null && File(path).existsSync()) {
-      setState(() {
-        localImageFile = File(path);
-      });
-    }
-  }
-
-  // ⭐ Get badge image path based on score
   String? getBadgeImagePath(int? score) {
     if (score == null) return null;
     if (score >= 1500) return 'assets/images/badges/diamond.png';
@@ -114,17 +168,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (score >= 300) return 'assets/images/badges/silver.png';
     return 'assets/images/badges/bronze.png';
   }
+
   String getBadgeName(int score) {
-  if (score >= 1500) return "Diamond";
-  if (score >= 800) return "Gold";
-  if (score >= 300) return "Silver";
-  return "Bronze";
-}
+    if (score >= 1500) return "Diamond";
+    if (score >= 800) return "Gold";
+    if (score >= 300) return "Silver";
+    return "Bronze";
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDarkMode = Theme.of(context).brightness == Brightness.dark;
-
     final primaryColor = isDarkMode ? const Color(0xFF158FAD) : const Color(0xFF0B7996);
     final cardColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     final textPrimaryColor = isDarkMode ? Colors.white : Colors.black87;
@@ -140,13 +194,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator(color: Colors.white))
+          ? Center(child: CircularProgressIndicator(color: Colors.white))
           : SingleChildScrollView(
               child: Column(
                 children: [
                   Container(
-                    margin: const EdgeInsets.all(16),
-                    padding: const EdgeInsets.all(20),
+                    margin: EdgeInsets.all(16),
+                    padding: EdgeInsets.all(20),
                     decoration: BoxDecoration(
                       color: cardColor,
                       borderRadius: BorderRadius.circular(20),
@@ -154,27 +208,48 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         BoxShadow(
                           color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
                           blurRadius: 10,
-                          offset: const Offset(0, 5),
+                          offset: Offset(0, 5),
                         ),
                       ],
                     ),
                     child: Column(
                       children: [
                         GestureDetector(
-                          onTap: pickImage,
-                          child: CircleAvatar(
-                            radius: 50,
-                            backgroundImage: localImageFile != null
-                                ? FileImage(localImageFile!)
-                                : (photoUrl != null
+                          onTap: _showImageSourceDialog,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              CircleAvatar(
+                                radius: 50,
+                                backgroundColor: Colors.grey.shade300,
+                                backgroundImage: photoUrl != null
                                     ? NetworkImage(photoUrl!)
-                                    : const AssetImage('assets/images/default_profile.png') as ImageProvider),
-                            child: localImageFile == null && photoUrl == null
-                                ? const Icon(Icons.camera_alt, size: 30, color: Colors.white)
-                                : null,
+                                    : AssetImage('assets/images/default_profile.png') as ImageProvider,
+                              ),
+                              if (isUploading)
+                                CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
+                                ),
+                              Positioned(
+                                bottom: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: primaryColor,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(
+                                    Icons.camera_alt,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         Text(
                           username ?? "Your name",
                           style: TextStyle(
@@ -183,9 +258,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             color: textPrimaryColor,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: isDarkMode ? Color(0xFF2A2A2A) : Colors.grey.shade100,
                             borderRadius: BorderRadius.circular(12),
@@ -200,9 +275,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                         ),
                         if (score != null) ...[
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                             decoration: BoxDecoration(
                               color: isDarkMode ? primaryColor.withOpacity(0.2) : primaryColor.withOpacity(0.1),
                               borderRadius: BorderRadius.circular(20),
@@ -212,7 +287,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(Icons.star_rounded, color: primaryColor, size: 20),
-                                const SizedBox(width: 6),
+                                SizedBox(width: 6),
                                 Text(
                                   "$score points",
                                   style: TextStyle(
@@ -224,30 +299,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 10),
+                          SizedBox(height: 10),
                           if (getBadgeImagePath(score) != null) ...[
-  Image.asset(
-    getBadgeImagePath(score!)!,
-    height: 60,
-  ),
-  const SizedBox(height: 6),
-  Text(
-    getBadgeName(score!),
-    style: TextStyle(
-      fontSize: 14,
-      fontWeight: FontWeight.w500,
-      color: textPrimaryColor,
-    ),
-  ),
-],
-
+                            Image.asset(
+                              getBadgeImagePath(score!)!,
+                              height: 60,
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              getBadgeName(score!),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: textPrimaryColor,
+                              ),
+                            ),
+                          ],
                         ],
                       ],
                     ),
                   ),
-                  // Menu section
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    margin: EdgeInsets.symmetric(horizontal: 16),
                     decoration: BoxDecoration(
                       color: cardColor,
                       borderRadius: BorderRadius.circular(20),
@@ -255,7 +328,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         BoxShadow(
                           color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
                           blurRadius: 10,
-                          offset: const Offset(0, 5),
+                          offset: Offset(0, 5),
                         ),
                       ],
                     ),
@@ -272,7 +345,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           },
                           isDarkMode: isDarkMode,
                         ),
-                        const Divider(height: 1, thickness: 0.5, color: Colors.white24),
+                        Divider(height: 1, thickness: 0.5, color: dividerColor),
                         MenuItemTile(
                           icon: Icons.logout,
                           title: "Log Out",
@@ -289,7 +362,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                 ],
               ),
             ),
@@ -315,17 +388,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               (route) => false,
             );
           } else {
-              setState(() {
-                currentIndex = index;
-              });
-            }
+            setState(() {
+              currentIndex = index;
+            });
+          }
         },
       ),
     );
   }
 }
 
-// MenuItemTile widget (unchanged)
 class MenuItemTile extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -351,11 +423,11 @@ class MenuItemTile extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Row(
           children: [
             Icon(icon, color: textColor ?? (isDarkMode ? Colors.white70 : Colors.grey.shade700)),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
