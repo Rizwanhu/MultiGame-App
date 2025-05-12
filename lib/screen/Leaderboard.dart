@@ -140,7 +140,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                           Padding(
                             padding: EdgeInsets.symmetric(vertical: 10),
                             child: Text(
-                              'High Score',
+                              'Leaderboard',
                               style: TextStyle(
                                 fontSize: 28,
                                 fontWeight: FontWeight.bold,
@@ -201,6 +201,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                         style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
+                                          color: Colors.black,
                                         ),
                                       ),
                                     ],
