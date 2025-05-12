@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as path;
 
 import 'package:app/components/Bottombar.dart';
@@ -23,10 +24,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? username;
   String? email;
   int? score;
-  String? photoUrl;
+  String? photoBase64;
   bool isLoading = true;
   int currentIndex = 3;
   bool isUploading = false;
+  final defaultImagePath = 'assets/images/default_profile.png';
 
   @override
   void initState() {
@@ -49,7 +51,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           username = data['username'] ?? 'No name';
           email = data['email'];
           score = data['score'] ?? 0;
-          photoUrl = data['photoUrl'];
+          photoBase64 = data['photoBase64'];
           isLoading = false;
         });
       }
@@ -62,6 +64,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  Future<String> _getDefaultImageBase64() async {
+    final byteData = await rootBundle.load(defaultImagePath);
+    final bytes = byteData.buffer.asUint8List();
+    return base64Encode(bytes);
+  }
+
   Future<void> pickImage({required ImageSource source}) async {
     if (isUploading) return;
     
@@ -69,52 +77,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final XFile? picked = await picker.pickImage(
         source: source,
-        imageQuality: 85,
-        maxWidth: 800,
+        imageQuality: 70,
+        maxWidth: 500,
       );
       if (picked == null) return;
 
       setState(() => isUploading = true);
       
-      // Create temporary file
-      final tempFile = File(picked.path);
-      
-      // Get file extension
-      final extension = path.extension(picked.path).toLowerCase();
-      
-      // Create storage reference with user's UID
-      final storageRef = FirebaseStorage.instance
-          .ref()
-          .child('profile_images/${user!.uid}$extension');
-
-      // Check if file exists and delete if it does
-      try {
-        await storageRef.getDownloadURL();
-        await storageRef.delete();
-      } catch (e) {
-        // File doesn't exist, proceed with upload
-      }
-
-      // Upload new file
-      await storageRef.putFile(tempFile);
-      final downloadUrl = await storageRef.getDownloadURL();
+      // Convert image to base64
+      final bytes = await File(picked.path).readAsBytes();
+      final base64String = base64Encode(bytes);
 
       // Update Firestore
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user!.uid)
           .update({
-            'photoUrl': downloadUrl,
+            'photoBase64': base64String,
             'lastUpdated': FieldValue.serverTimestamp(),
           });
 
       setState(() {
-        photoUrl = downloadUrl;
+        photoBase64 = base64String;
         isUploading = false;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Profile picture updated!')),
+        SnackBar(content: Text('Profile updated successfully!')),
       );
 
     } catch (e) {
@@ -161,20 +150,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  String? getBadgeImagePath(int? score) {
-    if (score == null) return null;
-    if (score >= 1500) return 'assets/images/badges/diamond.png';
-    if (score >= 800) return 'assets/images/badges/gold.png';
-    if (score >= 300) return 'assets/images/badges/silver.png';
-    return 'assets/images/badges/bronze.png';
+  ImageProvider getProfileImage() {
+    if (photoBase64 != null && photoBase64!.isNotEmpty) {
+      return MemoryImage(base64Decode(photoBase64!));
+    }
+    return AssetImage(defaultImagePath);
   }
 
-  String getBadgeName(int score) {
-    if (score >= 1500) return "Diamond";
-    if (score >= 800) return "Gold";
-    if (score >= 300) return "Silver";
-    return "Bronze";
-  }
+  String?getBadgeImagePath(int score) {
+ 
+  if (score >= 3000) return 'assets/images/badges/diamond.png';
+  if (score >= 2000) return 'assets/images/badges/gold.png';
+  if (score >= 1000) return 'assets/images/badges/silver.png';
+  return 'assets/images/badges/bronze.png'; 
+}
+
+String getBadgeName(int score) {
+  
+  if (score >= 3000) return "Diamond";
+  if (score >= 2000) return "Gold";
+  if (score >= 1000) return "Silver";
+  return 'Bronze'; 
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -182,7 +180,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final primaryColor = isDarkMode ? const Color(0xFF158FAD) : const Color(0xFF0B7996);
     final cardColor = isDarkMode ? const Color(0xFF1E1E1E) : Colors.white;
     final textPrimaryColor = isDarkMode ? Colors.white : Colors.black87;
-    final textSecondaryColor = isDarkMode ? Colors.white70 : Colors.black54;
     final dividerColor = isDarkMode ? Colors.white24 : Colors.grey.shade300;
     final scaffoldBackgroundColor = isDarkMode ? const Color(0xFF0A1A1F) : primaryColor;
 
@@ -222,9 +219,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               CircleAvatar(
                                 radius: 50,
                                 backgroundColor: Colors.grey.shade300,
-                                backgroundImage: photoUrl != null
-                                    ? NetworkImage(photoUrl!)
-                                    : AssetImage('assets/images/default_profile.png') as ImageProvider,
+                                backgroundImage: getProfileImage(),
                               ),
                               if (isUploading)
                                 CircularProgressIndicator(
@@ -300,7 +295,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                           ),
                           SizedBox(height: 10),
-                          if (getBadgeImagePath(score) != null) ...[
+                          if (getBadgeImagePath(score!) != null) ...[
                             Image.asset(
                               getBadgeImagePath(score!)!,
                               height: 60,

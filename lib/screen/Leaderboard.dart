@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:convert';
 import '../components/Bottombar.dart';
 import 'main_screen.dart';
 import 'profile_screen.dart';
@@ -20,6 +21,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   late int currentIndex;
   List<Map<String, dynamic>> leaderboardUsers = [];
   bool isLoading = true;
+  final defaultImagePath = 'assets/images/default_profile.png';
 
   @override
   void initState() {
@@ -33,11 +35,9 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
       // Fetch current user's score
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
-        final userDoc = await FirebaseFirestore.instance
-            .collection('users')
-            .doc(uid)
-            .get();
-            
+        final userDoc =
+            await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
         if (userDoc.exists) {
           setState(() {
             userScore = userDoc['score'] ?? 0;
@@ -57,7 +57,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         return {
           'name': data['username'] ?? 'Unknown',
           'score': data['score'] ?? 0,
-          'image': data['photoUrl'],
+          'imageBase64':
+              data['photoBase64'], // Changed from photoUrl to photoBase64
           'uid': doc.id,
         };
       }).toList();
@@ -72,21 +73,21 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     }
   }
 
-  Widget _buildProfileImage(String? imageUrl, {double radius = 18}) {
-    return CircleAvatar(
-      radius: radius,
-      backgroundColor: Colors.grey.shade300,
-      backgroundImage: imageUrl != null && imageUrl.isNotEmpty
-          ? NetworkImage(imageUrl)
-          : const AssetImage('assets/images/default_profile.png') as ImageProvider,
-      onBackgroundImageError: (_, __) => const AssetImage('assets/images/default_profile.png'),
-    );
+  ImageProvider _buildProfileImage(String? imageBase64, {double radius = 18}) {
+    if (imageBase64 != null && imageBase64.isNotEmpty) {
+      try {
+        return MemoryImage(base64Decode(imageBase64));
+      } catch (e) {
+        print('Error decoding base64 image: $e');
+      }
+    }
+    return AssetImage(defaultImagePath);
   }
 
   String getBadgeAsset(int score) {
-    if (score >= 1500) return 'assets/images/badges/diamond.png';
-    if (score >= 1000) return 'assets/images/badges/gold.png';
-    if (score >= 500) return 'assets/images/badges/silver.png';
+    if (score >= 3000) return 'assets/images/badges/diamond.png';
+    if (score >= 2000) return 'assets/images/badges/gold.png';
+    if (score >= 1000) return 'assets/images/badges/silver.png';
     return 'assets/images/badges/bronze.png';
   }
 
@@ -152,7 +153,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                             final user = leaderboardUsers[index];
                             final isTopThree = index < 3;
                             return Container(
-                              padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 6, horizontal: 10),
                               decoration: BoxDecoration(
                                 color: isTopThree
                                     ? Colors.blue.shade100.withOpacity(0.4)
@@ -169,7 +171,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                     ),
                                   ),
                                   SizedBox(width: 10),
-                                  _buildProfileImage(user['image']),
+                                  CircleAvatar(
+                                    radius: 18,
+                                    backgroundColor: Colors.grey.shade300,
+                                    backgroundImage:
+                                        _buildProfileImage(user['imageBase64']),
+                                  ),
                                   SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
