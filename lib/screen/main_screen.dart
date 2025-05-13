@@ -345,7 +345,7 @@ Container(
   padding: EdgeInsets.all(16),
   width: double.infinity,
   decoration: BoxDecoration(
-    color: const Color.fromARGB(255, 40, 43, 197),
+    color: Colors.blue,
     borderRadius: BorderRadius.circular(12),
     border: Border.all(color: const Color.fromARGB(255, 22, 4, 124)),
   ),

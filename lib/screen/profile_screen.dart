@@ -157,21 +157,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return AssetImage(defaultImagePath);
   }
 
-  String?getBadgeImagePath(int score) {
- 
-  if (score >= 3000) return 'assets/images/badges/diamond.png';
-  if (score >= 2000) return 'assets/images/badges/gold.png';
-  if (score >= 1000) return 'assets/images/badges/silver.png';
-  return 'assets/images/badges/bronze.png'; 
+  String? getBadgeImagePath(int score) {
+  if (score >= 10000) return 'assets/images/badges/diamond.png';
+  if (score >= 6000) return 'assets/images/badges/gold.png';
+  if (score >= 2000) return 'assets/images/badges/silver.png';
+  if (score >= 750) return 'assets/images/badges/bronze.png';
+  return null; // No badge
 }
 
 String getBadgeName(int score) {
-  
-  if (score >= 3000) return "Diamond";
-  if (score >= 2000) return "Gold";
-  if (score >= 1000) return "Silver";
-  return 'Bronze'; 
+  if (score >= 10000) return "Diamond";
+    if (score >= 8000) return "Gold I";
+    if (score >= 7000) return "Gold II";
+    if (score >= 6000) return "Gold III";
+    if (score >= 4000) return "Silver I";
+    if (score >= 3000) return "Silver II";
+    if (score >= 2000) return "Silver III";
+    if (score >= 1500) return "Bronze I";
+    if (score >= 1000) return "Bronze II";
+    if (score >= 750) return "Bronze III";
+    return "No Badge";
 }
+
 
 
   @override

@@ -32,12 +32,10 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
 
   Future<void> fetchLeaderboardData() async {
     try {
-      // Fetch current user's score
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
         final userDoc =
             await FirebaseFirestore.instance.collection('users').doc(uid).get();
-
         if (userDoc.exists) {
           setState(() {
             userScore = userDoc['score'] ?? 0;
@@ -45,7 +43,6 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         }
       }
 
-      // Fetch top users
       final querySnapshot = await FirebaseFirestore.instance
           .collection('users')
           .orderBy('score', descending: true)
@@ -57,8 +54,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
         return {
           'name': data['username'] ?? 'Unknown',
           'score': data['score'] ?? 0,
-          'imageBase64':
-              data['photoBase64'], // Changed from photoUrl to photoBase64
+          'imageBase64': data['photoBase64'],
           'uid': doc.id,
         };
       }).toList();
@@ -84,11 +80,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
     return AssetImage(defaultImagePath);
   }
 
-  String getBadgeAsset(int score) {
-    if (score >= 3000) return 'assets/images/badges/diamond.png';
-    if (score >= 2000) return 'assets/images/badges/gold.png';
-    if (score >= 1000) return 'assets/images/badges/silver.png';
-    return 'assets/images/badges/bronze.png';
+  String? getBadgeAsset(int score) {
+    if (score >= 10000) return 'assets/images/badges/diamond.png';
+    if (score >= 6000) return 'assets/images/badges/gold.png';
+    if (score >= 2000) return 'assets/images/badges/silver.png';
+    if (score >= 750) return 'assets/images/badges/bronze.png';
+    return null;
   }
 
   @override
@@ -152,6 +149,8 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                           ...List.generate(leaderboardUsers.length, (index) {
                             final user = leaderboardUsers[index];
                             final isTopThree = index < 3;
+                            final badgeImage = getBadgeAsset(user['score']);
+
                             return Container(
                               padding: EdgeInsets.symmetric(
                                   vertical: 6, horizontal: 10),
@@ -182,7 +181,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                     child: Text(
                                       user['name'],
                                       style: TextStyle(
-                                        fontSize: 20,
+                                        fontSize: 18,
                                         fontWeight: FontWeight.bold,
                                         color: Colors.black,
                                       ),
@@ -190,11 +189,12 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                                   ),
                                   Row(
                                     children: [
-                                      Image.asset(
-                                        getBadgeAsset(user['score']),
-                                        width: 24,
-                                        height: 24,
-                                      ),
+                                      if (badgeImage != null)
+                                        Image.asset(
+                                          badgeImage,
+                                          width: 24,
+                                          height: 24,
+                                        ),
                                       SizedBox(width: 6),
                                       Text(
                                         '${user['score']}',
