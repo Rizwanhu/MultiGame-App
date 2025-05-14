@@ -497,7 +497,7 @@ class BlankScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(gameName)),
       body: Center(
-        child: Text("Blank screen for $gameName", style: TextStyle(fontSize: 20)),
+        child: Text(" screen for $gameName", style: TextStyle(fontSize: 20)),
       ),
     );
   }
