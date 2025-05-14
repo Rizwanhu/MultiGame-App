@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../theme/theme_provider.dart';
-import '../Games/CardFlipper/CardFlipper.dart';  // Add this import
-import '../Games/SnakeGame/SnakeGame.dart';  // Add this import
-import '../Games/TicTacToe_AI/TicTacToe.dart';  // Add this import
+import '../Games/CardFlipper/CardFlipper.dart';  
+import '../Games/SnakeGame/SnakeGame.dart';  
+import '../Games/TicTacToe_AI/TicTacToe.dart' as tictactoe;  // Added prefix
+import '../Games/2048_Game/2048.dart' as game2048;  // Added prefix
 
 class GameDetailScreen extends StatelessWidget {
   final String gameName;
@@ -150,7 +151,12 @@ class GameDetailScreen extends StatelessWidget {
   } else if (gameName == "Tic Tac Toe") {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => MyApp()),
+      MaterialPageRoute(builder: (context) => tictactoe.MyApp()),
+    );
+  } else if (gameName == "2048") {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => game2048.MyApp()),
     );
   } else {
     showDialog(

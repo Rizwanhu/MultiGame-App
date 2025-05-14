@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'Leaderboard.dart';
@@ -69,6 +67,7 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
     {"name": "Card Flipper", "image": "assets/images/CardFlipGame/00.png"},
     {"name": "Snake Game", "image": "assets/images/snake.png"},
     {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
+    {"name": "2048", "image": "assets/images/pingpong.png"},  // Added 2048 game
     {"name": "Ping Pong", "image": "assets/images/pingpong.png"},
     {"name": "Darts", "image": "assets/images/darts.png"},
     {"name": "Squid Game", "image": "assets/images/squid.png"},
@@ -497,7 +496,7 @@ class BlankScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: Text(gameName)),
       body: Center(
-        child: Text(" screen for $gameName", style: TextStyle(fontSize: 20)),
+        child: Text("Blank screen for $gameName", style: TextStyle(fontSize: 20)),
       ),
     );
   }
