@@ -1,10 +1,14 @@
 import 'dart:math' show Random;
 import 'boardcell.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '/../../services/auth_service.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Game {
   final int row;
   final int column;
   int score = 0;
+  bool _isGameOver = false;
 
   Game(this.row, this.column);
 
@@ -23,6 +27,7 @@ class Game {
       }
     }
     score = 0;
+    _isGameOver = false;
     resetMergeStatus();
     randomEmptyCell(2);
   }
@@ -174,7 +179,10 @@ class Game {
     } else if (a == b) {
       b.number = b.number * 2;
       a.number = 0;
+      
+      // Original scoring system - no modification needed
       score += b.number;
+      
       b.isMerged = true;
     } else {
       b.isMerged = true;
@@ -182,7 +190,15 @@ class Game {
   }
 
   bool isGameOver() {
-    return !canMoveLeft() && !canMoveRight() && !canMoveUp() && !canMoveDown();
+    if (!canMoveLeft() && !canMoveRight() && !canMoveUp() && !canMoveDown()) {
+      if (!_isGameOver) {
+        _isGameOver = true;
+        // Only update Firebase score once when the game is truly over
+        updateScoreToFirebase();
+      }
+      return true;
+    }
+    return false;
   }
 
   void randomEmptyCell(int cnt) {
@@ -213,7 +229,28 @@ class Game {
     _boardCells.forEach((cells) {
       cells.forEach((cell) {
         cell.isMerged = false;
+        cell.isNew = false;
       });
     });
+  }
+  
+  // Update score to Firebase - only called once at game over
+  Future<void> updateScoreToFirebase() async {
+    try {
+      final user = AuthService().currentUser;
+      if (user != null && score > 0) {
+        final docRef = AuthService().firestore.collection('users').doc(user.uid);
+        final snapshot = await docRef.get();
+        
+        // Get existing score and add new score from this game
+        final currentScore = snapshot.data()?['score'] ?? 0;
+        final newScore = currentScore + score;
+        
+        // Update Firestore with new score
+        await docRef.update({'score': newScore});
+      }
+    } catch (e) {
+      print('Error updating score to Firebase: $e');
+    }
   }
 }

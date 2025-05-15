@@ -9,95 +9,81 @@ class ChallengesScreen extends StatefulWidget {
 }
 
 class _ChallengesScreenState extends State<ChallengesScreen> {
-  final List<Map<String, dynamic>> allChallenges = [
+  final List<Map<String, dynamic>> allMissions = [
     {"task": "Play 1 Game", "reward": 50},
     {"task": "Win 2 Matches", "reward": 100},
     {"task": "Watch 1 Ad", "reward": 30},
     {"task": "Login Today", "reward": 20},
     {"task": "Score 100 Points", "reward": 70},
-    {"task": "Play for 10 Minutes", "reward": 60},
-    {"task": "Complete 3 Levels", "reward": 90},
+    {"task": "Refer a Friend", "reward": 120},
   ];
 
-  List<Map<String, dynamic>> todaysChallenges = [];
+  List<Map<String, dynamic>> todayMissions = [];
   Set<int> completedIndexes = {};
   bool isLoading = true;
-
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
-  late String uid;
 
   @override
   void initState() {
     super.initState();
-    uid = _auth.currentUser!.uid;
     loadChallenges();
   }
 
   Future<void> loadChallenges() async {
-    final doc = await _firestore.collection('users').doc(uid).get();
-    final today = DateTime.now();
-    final lastDateStr = doc.data()?['lastChallengeDate'];
-    final completed = List.from(doc.data()?['completedChallenges'] ?? []);
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
 
-    if (lastDateStr != null) {
-      final lastDate = DateTime.tryParse(lastDateStr);
-      if (lastDate != null &&
-          lastDate.day == today.day &&
-          lastDate.month == today.month &&
-          lastDate.year == today.year) {
-        final savedIndexes = List.from(doc.data()?['todaysChallenges'] ?? []);
-        todaysChallenges = savedIndexes
-            .map((index) => allChallenges[index as int])
-            .toList();
-        completedIndexes = completed.map((e) => e as int).toSet();
-      } else {
-        await generateNewChallenges(today);
-      }
+    final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
+    final userDoc = await docRef.get();
+
+    final lastDate = userDoc.data()?['lastChallengeDate'];
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    if (lastDate == null ||
+        DateTime.tryParse(lastDate)?.isBefore(today) == true) {
+      // Pick 3 new random challenges
+      todayMissions = getRandomChallenges(3);
+      completedIndexes.clear();
+
+      await docRef.update({
+        'dailyMissions': todayMissions,
+        'completedChallenges': [],
+        'lastChallengeDate': today.toIso8601String(),
+      });
     } else {
-      await generateNewChallenges(today);
+      // Load saved dailyMissions
+      todayMissions =
+          List<Map<String, dynamic>>.from(userDoc.data()?['dailyMissions'] ?? []);
+      completedIndexes = Set<int>.from(userDoc.data()?['completedChallenges'] ?? []);
     }
 
-    setState(() {
-      isLoading = false;
-    });
-  }
-
-  Future<void> generateNewChallenges(DateTime today) async {
-    todaysChallenges = getRandomChallenges(3);
-    final indexes = todaysChallenges.map((c) => allChallenges.indexOf(c)).toList();
-    await _firestore.collection('users').doc(uid).set({
-      'todaysChallenges': indexes,
-      'completedChallenges': [],
-      'lastChallengeDate': today.toIso8601String(),
-    }, SetOptions(merge: true));
-    completedIndexes.clear();
+    setState(() => isLoading = false);
   }
 
   List<Map<String, dynamic>> getRandomChallenges(int count) {
-    final shuffled = List<Map<String, dynamic>>.from(allChallenges)..shuffle(Random());
+    final random = Random();
+    final shuffled = [...allMissions]..shuffle(random);
     return shuffled.take(count).toList();
   }
 
   Future<void> completeChallenge(int index) async {
     if (completedIndexes.contains(index)) return;
 
-    setState(() {
-      completedIndexes.add(index);
-    });
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
 
-    final challenge = todaysChallenges[index];
-    final reward = challenge['reward'];
-
-    final docRef = _firestore.collection('users').doc(uid);
+    final reward = todayMissions[index]['reward'];
+    final docRef = FirebaseFirestore.instance.collection('users').doc(uid);
     final userDoc = await docRef.get();
     final currentScore = userDoc.data()?['score'] ?? 0;
 
+    completedIndexes.add(index);
     await docRef.update({
       'completedChallenges': completedIndexes.toList(),
       'score': currentScore + reward,
     });
+
+    setState(() {});
   }
 
   @override
@@ -111,54 +97,45 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
           ? Center(child: CircularProgressIndicator())
           : ListView.builder(
               padding: EdgeInsets.all(16),
-              itemCount: todaysChallenges.length,
+              itemCount: todayMissions.length,
               itemBuilder: (context, index) {
-                final mission = todaysChallenges[index];
+                final mission = todayMissions[index];
                 final isCompleted = completedIndexes.contains(index);
 
-                return Opacity(
-                  opacity: isCompleted ? 0.5 : 1.0,
-                  child: Card(
-                    margin: EdgeInsets.symmetric(vertical: 10),
-                    elevation: 5,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(15),
+                return Card(
+                  margin: EdgeInsets.symmetric(vertical: 10),
+                  elevation: 5,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  color: isCompleted ? Colors.grey[300] : Colors.white,
+                  child: ListTile(
+                    leading: Icon(
+                      isCompleted
+                          ? Icons.check_circle
+                          : Icons.radio_button_unchecked,
+                      color: isCompleted ? Colors.green : Colors.deepPurple,
+                      size: 30,
                     ),
-                    child: ListTile(
-                      leading: Icon(
-                        isCompleted
-                            ? Icons.check_circle
-                            : Icons.radio_button_unchecked,
-                        color: isCompleted ? Colors.green : Colors.deepPurple,
-                        size: 30,
+                    title: Text(
+                      mission['task'],
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                        decoration: isCompleted
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none,
                       ),
-                      title: Text(
-                        mission['task'],
-                        style: TextStyle(
-                          fontSize: 18,
-                          decoration: isCompleted
-                              ? TextDecoration.lineThrough
-                              : TextDecoration.none,
-                        ),
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "+${mission['reward']} pts",
-                            style: TextStyle(
-                                fontWeight: FontWeight.bold, fontSize: 16),
-                          ),
-                          if (isCompleted)
-                            Icon(Icons.done, color: Colors.green, size: 18),
-                        ],
-                      ),
-                      onTap: isCompleted
-                          ? null
-                          : () {
-                              completeChallenge(index);
-                            },
                     ),
+                    trailing: Text(
+                      "+${mission['reward']} pts",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: isCompleted ? Colors.grey : Colors.black,
+                      ),
+                    ),
+                    onTap: () => completeChallenge(index),
                   ),
                 );
               },

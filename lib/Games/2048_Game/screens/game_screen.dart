@@ -84,44 +84,62 @@ class GameWidgetState extends State<GameWidget> {
   }
 
   void checkGameOver() {
-    if (_game.isGameOver()) {
+    if (_game.isGameOver() && !_isGameOver) {
       _isGameOver = true;
-      String title = "Finished";
-      int scoreEnd = _game.score;
-      if (scoreEnd > bestScore) {
-        saveScore(scoreEnd);
-        title = "New High Score !";
-        setState(() {
-          bestScore = scoreEnd;
-        });
-      }
-      Alert(
-        context: context,
-        type: AlertType.info,
-        title: title,
-        desc: "The game is over your score is $scoreEnd.",
-        buttons: [
-          DialogButton(
-            child: Text(
-              "Close",
-              style: dialogTextStyle,
-            ),
-            onPressed: () => Navigator.pop(context),
-            width: 120,
-          ),
-          DialogButton(
-            child: Text(
-              "New Game",
-              style: dialogTextStyle,
-            ),
-            onPressed: () {
-              newGame();
-              Navigator.pop(context);
+      
+      // To ensure we don't call this multiple times
+      Future.delayed(Duration(milliseconds: 300), () {
+        String title = "Game Over";
+        int scoreEnd = _game.score;
+        
+        if (scoreEnd > bestScore) {
+          saveScore(scoreEnd);
+          title = "New High Score!";
+          setState(() {
+            bestScore = scoreEnd;
+          });
+        }
+        
+        // Show the game over dialog
+        if (mounted) {
+          Alert(
+            context: context,
+            type: AlertType.info,
+            title: title,
+            desc: "The game is over. Your score is $scoreEnd.",
+            buttons: [
+              DialogButton(
+                child: Text(
+                  "Close",
+                  style: dialogTextStyle,
+                ),
+                onPressed: () => Navigator.pop(context),
+                width: 120,
+              ),
+              DialogButton(
+                child: Text(
+                  "New Game",
+                  style: dialogTextStyle,
+                ),
+                onPressed: () {
+                  Navigator.pop(context);
+                  // Delay starting new game slightly to avoid any state issues
+                  Future.delayed(Duration(milliseconds: 100), () {
+                    if (mounted) {
+                      newGame();
+                    }
+                  });
+                },
+                gradient: backgroundGradient,
+              )
+            ],
+            closeFunction: () {
+              // Make sure we can show another dialog later if needed
+              _isGameOver = true;
             },
-            gradient: backgroundGradient,
-          )
-        ],
-      ).show();
+          ).show();
+        }
+      });
     }
   }
 

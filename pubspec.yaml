@@ -86,6 +86,7 @@ flutter:
     - assets/images/background_picture.jpg
     - assets/images/splash1.png
     - assets/images/splash2.jpg
+    - assets/images/2048_g2.jpeg
     - assets/images/coin.gif
     - assets/images/trophy.gif
     - assets/images/island.jpg
@@ -113,6 +114,7 @@ flutter:
     - assets/images/badges/gold.png
     - assets/images/badges/silver.png
     - assets/images/badges/bronze.png
+    
 
     - assets/audio/background_music.mp3
     
