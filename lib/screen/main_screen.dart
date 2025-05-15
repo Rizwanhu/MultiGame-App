@@ -85,7 +85,10 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
   Future<void> fetchUserScore() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
       if (doc.exists) {
         final data = doc.data()!;
         setState(() {
@@ -131,7 +134,8 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
 
     final scoreToAdd = rewardScores[currentDay];
 
-    final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final userDoc =
+        FirebaseFirestore.instance.collection('users').doc(user.uid);
     await userDoc.update({
       'score': FieldValue.increment(scoreToAdd),
       'lastClaimed': Timestamp.now(),
@@ -169,211 +173,234 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
-
-    return Scaffold(
-      backgroundColor: isDarkMode ? Color(0xFF121212) : Colors.white,
-      appBar: AppBar(
-        backgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        toolbarHeight: 45,
-        title: Row(
-          children: [
-            Text(
-              "Multigame App",
-              style: TextStyle(
-                fontSize: 28,
-                fontFamily: 'LuckiestGuy',
-                fontWeight: FontWeight.bold,
-                color: isDarkMode ? Colors.white : Colors.black,
-                letterSpacing: 2.0,
-                shadows: [
-                  Shadow(
-                    color: isDarkMode ? Colors.black : Colors.white,
-                    blurRadius: 5,
-                    offset: Offset(2, 2),
-                  )
-                ],
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings),
-            onPressed: openDrawer,
-          ),
-          Padding(
-            padding: const EdgeInsets.only(right: 2.0),
-            child: Image.asset(
-              'assets/images/robot.gif',
-              width: 50,
-              height: 40,
-              fit: BoxFit.contain,
-            ),
-          ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: fetchUserScore,
-        child: SingleChildScrollView(
-          physics: AlwaysScrollableScrollPhysics(),
-          child: Column(
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity != null) {
+          if (details.primaryVelocity! < 0) {
+            // Swipe Right → ProfileScreen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (_) => LeaderboardPage()),
+            );
+          }
+          // Swipe Left → do nothing
+        }
+      },
+      child: Scaffold(
+        backgroundColor: isDarkMode ? Color(0xFF121212) : Colors.white,
+        appBar: AppBar(
+          backgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
+          elevation: 0,
+          automaticallyImplyLeading: false,
+          toolbarHeight: 45,
+          title: Row(
             children: [
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                color: isDarkMode ? Colors.blue[900] : Colors.blue,
-                width: double.infinity,
-                child: Row(
-                  children: [
-                    Text("SCORE: ",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                    Text(userScore.toString(),
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+              Text(
+                "Multigame App",
+                style: TextStyle(
+                  fontSize: 28,
+                  fontFamily: 'LuckiestGuy',
+                  fontWeight: FontWeight.bold,
+                  color: isDarkMode ? Colors.white : Colors.black,
+                  letterSpacing: 2.0,
+                  shadows: [
+                    Shadow(
+                      color: isDarkMode ? Colors.black : Colors.white,
+                      blurRadius: 5,
+                      offset: Offset(2, 2),
+                    )
                   ],
-                ),
-              ),
-
-              Container(
-                margin: EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-                padding: EdgeInsets.all(16),
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color.fromARGB(255, 22, 4, 124)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("Daily Reward - Day $currentDay",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    SizedBox(height: 8),
-                    Text("Get +${rewardScores[currentDay]} points today!"),
-                    SizedBox(height: 8),
-                    rewardAvailable
-                        ? ElevatedButton(
-                            onPressed: claimReward,
-                            child: Text("Claim Reward"),
-                          )
-                        : Text("Next reward in: ${timeUntilNext.inHours.remainder(24).toString().padLeft(2, '0')}h "
-                            "${timeUntilNext.inMinutes.remainder(60).toString().padLeft(2, '0')}m"),
-                  ],
-                ),
-              ),
-
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => ChallengesScreen()),
-                  );
-                },
-                child: Container(
-                  margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                  padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.deepPurple.shade100,
-                    borderRadius: BorderRadius.circular(15),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 6,
-                        offset: Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.track_changes, color: Colors.deepPurple, size: 30),
-                      SizedBox(width: 12),
-                      Text(
-                        "Challenges",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.deepPurple.shade800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              Container(
-                height: 150,
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                child: const DiagonalMediaGrid(),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: GridView.count(
-                  physics: NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1,
-                  children: games.map((game) {
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => GameDetailScreen(
-                              gameName: game["name"],
-                              gameImage: game["image"],
-                            ),
-                          ),
-                        );
-                      },
-                      child: GameCard(
-                        gameName: game["name"],
-                        imagePath: game["image"],
-                      ),
-                    );
-                  }).toList(),
                 ),
               ),
             ],
           ),
+          actions: [
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: openDrawer,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 2.0),
+              child: Image.asset(
+                'assets/images/robot.gif',
+                width: 50,
+                height: 40,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ],
         ),
-      ),
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          navigationBarTheme: NavigationBarThemeData(
-            backgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
+        body: RefreshIndicator(
+          onRefresh: fetchUserScore,
+          child: SingleChildScrollView(
+            physics: AlwaysScrollableScrollPhysics(),
+            child: Column(
+              children: [
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  color: isDarkMode ? Colors.blue[900] : Colors.blue,
+                  width: double.infinity,
+                  child: Row(
+                    children: [
+                      Text("SCORE: ",
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
+                      Text(userScore.toString(),
+                          style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white)),
+                    ],
+                  ),
+                ),
+                Container(
+                  margin: EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+                  padding: EdgeInsets.all(16),
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: const Color.fromARGB(255, 22, 4, 124)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Daily Reward - Day $currentDay",
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 8),
+                      Text("Get +${rewardScores[currentDay]} points today!"),
+                      SizedBox(height: 8),
+                      rewardAvailable
+                          ? ElevatedButton(
+                              onPressed: claimReward,
+                              child: Text("Claim Reward"),
+                            )
+                          : Text(
+                              "Next reward in: ${timeUntilNext.inHours.remainder(24).toString().padLeft(2, '0')}h "
+                              "${timeUntilNext.inMinutes.remainder(60).toString().padLeft(2, '0')}m"),
+                    ],
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ChallengesScreen()),
+                    );
+                  },
+                  child: Container(
+                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.deepPurple.shade100,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 6,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.track_changes,
+                            color: Colors.deepPurple, size: 30),
+                        SizedBox(width: 12),
+                        Text(
+                          "Challenges",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.deepPurple.shade800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 150,
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  child: const DiagonalMediaGrid(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GridView.count(
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1,
+                    children: games.map((game) {
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GameDetailScreen(
+                                gameName: game["name"],
+                                gameImage: game["image"],
+                              ),
+                            ),
+                          );
+                        },
+                        child: GameCard(
+                          gameName: game["name"],
+                          imagePath: game["image"],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        child: CustomBottomBar(
-          currentIndex: currentIndex,
-          onTap: (index) {
-            if (index == 1) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => LeaderboardPage(initialIndex: index)),
-                (route) => false,
-              );
-            } else if (index == 2) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => AdsScreen(initialIndex: index)),
-                (route) => false,
-              );
-            } else if (index == 3) {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => ProfileScreen()),
-                (route) => false,
-              );
-            } else {
-              setState(() {
-                currentIndex = index;
-              });
-            }
-          },
+        bottomNavigationBar: Theme(
+          data: Theme.of(context).copyWith(
+            navigationBarTheme: NavigationBarThemeData(
+              backgroundColor: isDarkMode ? Color(0xFF1E1E1E) : Colors.white,
+            ),
+          ),
+          child: CustomBottomBar(
+            currentIndex: currentIndex,
+            onTap: (index) {
+              if (index == 1) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          LeaderboardPage(initialIndex: index)),
+                  (route) => false,
+                );
+              } else if (index == 2) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AdsScreen(initialIndex: index)),
+                  (route) => false,
+                );
+              } else if (index == 3) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => ProfileScreen()),
+                  (route) => false,
+                );
+              } else {
+                setState(() {
+                  currentIndex = index;
+                });
+              }
+            },
+          ),
         ),
       ),
     );

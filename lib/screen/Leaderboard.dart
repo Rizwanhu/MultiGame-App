@@ -92,6 +92,16 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async => false,
+      child: GestureDetector(
+  onHorizontalDragEnd: (details) {
+    if (details.primaryVelocity != null) {
+      if (details.primaryVelocity! < 0) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => AdsScreen()));
+      } else if (details.primaryVelocity! > 0) {
+        Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => MainScreen()));
+      }
+    }
+  },
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -244,6 +254,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
             }
           },
         ),
+      ),
       ),
     );
   }
