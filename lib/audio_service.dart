@@ -8,6 +8,7 @@ class AudioService {
   
   bool _isMusicOn = true;
   double _volume = 0.5; // 0.0 to 1.0
+  bool _isInitialized = false;
   
   // Singleton pattern
   factory AudioService() {
@@ -16,8 +17,13 @@ class AudioService {
   
   AudioService._internal();
   
+  bool get isMusicOn => _isMusicOn;
+  double get volume => _volume;
+  
   // Initialize and load saved preferences
   Future<void> initialize() async {
+    if (_isInitialized) return; // Only initialize once
+    
     try {
       final prefs = await SharedPreferences.getInstance();
       _isMusicOn = prefs.getBool('isMusicOn') ?? true;
@@ -29,10 +35,16 @@ class AudioService {
       // Set looping
       await _backgroundMusic.setLoopMode(LoopMode.one);
       
+      // Prepare the audio but don't play yet
+      await _backgroundMusic.setAsset('assets/audio/background_music.mp3');
+      
       // Play music if it should be on
       if (_isMusicOn) {
-        await playBackgroundMusic();
+        await _backgroundMusic.play();
       }
+      
+      _isInitialized = true;
+      
     } catch (e) {
       debugPrint('Error initializing AudioService: $e');
     }
@@ -41,9 +53,12 @@ class AudioService {
   // Play background music
   Future<void> playBackgroundMusic() async {
     try {
-      // Replace with your actual music file path
-      await _backgroundMusic.setAsset('assets/audio/background_music.mp3');
-      if (_isMusicOn) {
+      if (!_isInitialized) {
+        await initialize();
+        return;
+      }
+      
+      if (_isMusicOn && !_backgroundMusic.playing) {
         await _backgroundMusic.play();
       }
     } catch (e) {
@@ -54,7 +69,9 @@ class AudioService {
   // Pause background music
   Future<void> pauseBackgroundMusic() async {
     try {
-      await _backgroundMusic.pause();
+      if (_backgroundMusic.playing) {
+        await _backgroundMusic.pause();
+      }
     } catch (e) {
       debugPrint('Error pausing background music: $e');
     }
@@ -81,8 +98,8 @@ class AudioService {
   // Set volume
   Future<void> setVolume(double volume) async {
     try {
-      // Convert 0-100 scale to 0-1 scale
-      _volume = volume / 100;
+      // Ensure volume is between 0.0 and 1.0
+      _volume = volume.clamp(0.0, 1.0);
       
       await _backgroundMusic.setVolume(_volume);
       
@@ -91,16 +108,6 @@ class AudioService {
     } catch (e) {
       debugPrint('Error setting volume: $e');
     }
-  }
-  
-  // Get current volume (0-100 scale)
-  double getVolume() {
-    return _volume * 100;
-  }
-  
-  // Get music on/off state
-  bool isMusicOn() {
-    return _isMusicOn;
   }
   
   // Handle app lifecycle changes

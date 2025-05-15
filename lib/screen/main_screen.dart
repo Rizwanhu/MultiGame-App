@@ -12,9 +12,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
-import 'package:just_audio/just_audio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../audio_service.dart';
+import '../audio_aware_screen.dart';
 import 'challenges.dart';
 
 void main() async {
@@ -43,15 +41,13 @@ class MultiGameApp extends StatelessWidget {
   }
 }
 
-class MainScreen extends StatefulWidget {
+class MainScreen extends AudioAwareScreen {
   @override
   _MainScreenState createState() => _MainScreenState();
 }
 
-class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
+class _MainScreenState extends AudioAwareScreenState<MainScreen> {
   int currentIndex = 0;
-  double volumeValue = 50.0;
-  bool isMusicOn = true;
   int userScore = 0;
 
   int currentDay = 1;
@@ -61,13 +57,12 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   bool rewardAvailable = false;
 
   final rewardScores = [0, 25, 50, 75, 100, 125, 150, 200];
-  late AudioService audioService;
 
   final List<Map<String, dynamic>> games = [
     {"name": "Card Flipper", "image": "assets/images/CardFlipGame/00.png"},
     {"name": "Snake Game", "image": "assets/images/snake.png"},
     {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
-    {"name": "2048", "image": "assets/images/2048_g2.jpeg"},  // Added 2048 game
+    {"name": "2048", "image": "assets/images/2048_g2.jpeg"},
     {"name": "Darts", "image": "assets/images/darts.png"},
     {"name": "Squid Game", "image": "assets/images/squid.png"},
     {"name": "Runner Game", "image": "assets/images/runner.png"},
@@ -77,40 +72,13 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addObserver(this);
-    
-    // Initialize audio service
-    audioService = AudioService();
-    _initializeAudio();
-    
     fetchUserScore();
     startTimer();
   }
 
-  
-  // Initialize audio and load saved preferences
-  Future<void> _initializeAudio() async {
-    await audioService.initialize();
-    // Update UI state after loading preferences
-    setState(() {
-      volumeValue = audioService.getVolume();
-      isMusicOn = audioService.isMusicOn();
-    });
-  }
-  
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    // Handle app lifecycle changes like going to background or returning
-    audioService.handleLifecycleChange(state);
-    super.didChangeAppLifecycleState(state);
-  }
-
   @override
   void dispose() {
-      timer?.cancel();
-
-    WidgetsBinding.instance.removeObserver(this);
-    audioService.dispose();
+    timer?.cancel();
     super.dispose();
   }
 
@@ -156,116 +124,45 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
   }
 
   Future<void> claimReward() async {
-  if (!rewardAvailable) return;
+    if (!rewardAvailable) return;
 
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return;
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
 
-  final scoreToAdd = rewardScores[currentDay];
+    final scoreToAdd = rewardScores[currentDay];
 
-  final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
-  await userDoc.update({
-    'score': FieldValue.increment(scoreToAdd),
-    'lastClaimed': Timestamp.now(),
-    'rewardDay': currentDay < 7 ? currentDay + 1 : 1,
-  });
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    await userDoc.update({
+      'score': FieldValue.increment(scoreToAdd),
+      'lastClaimed': Timestamp.now(),
+      'rewardDay': currentDay < 7 ? currentDay + 1 : 1,
+    });
 
-  setState(() {
-    userScore += scoreToAdd;
-    lastClaimed = DateTime.now();
-    currentDay = currentDay < 7 ? currentDay + 1 : 1;
-    rewardAvailable = false;
-  });
+    setState(() {
+      userScore += scoreToAdd;
+      lastClaimed = DateTime.now();
+      currentDay = currentDay < 7 ? currentDay + 1 : 1;
+      rewardAvailable = false;
+    });
 
-  
-  showDialog(
-    context: context,
-    builder: (_) => AlertDialog(
-      title: Text("🎉 Congratulations!"),
-      content: Text("You received +$scoreToAdd points!"),
-      actions: [
-        TextButton(
-          child: Text("OK"),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ],
-    ),
-  );
-}
-
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text("🎉 Congratulations!"),
+        content: Text("You received +$scoreToAdd points!"),
+        actions: [
+          TextButton(
+            child: Text("OK"),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
 
   void openDrawer() {
-    final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            return Container(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text("Settings", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Volume"),
-                      Expanded(
-                        child: Slider(
-                          value: volumeValue,
-                          min: 0,
-                          max: 100,
-                          onChanged: (val) {
-                            setModalState(() {
-                              volumeValue = val;
-                              // Apply volume change in real-time
-                              audioService.setVolume(val);
-                            });
-                            setState(() => volumeValue = val);
-                          },
-                        ),
-                      ),
-                      Text("${volumeValue.round()}"),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Music"),
-                      Switch(
-                        value: isMusicOn,
-                        onChanged: (val) {
-                          setModalState(() {
-                            isMusicOn = val;
-                            // Toggle music on/off
-                            audioService.toggleMusic(val);
-                          });
-                          setState(() => isMusicOn = val);
-                        },
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Dark Mode"),
-                      Switch(
-                        value: themeProvider.themeMode == ThemeMode.dark,
-                        onChanged: (val) {
-                          themeProvider.toggleTheme(val);
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
+    // Using our helper method from AudioAwareScreenState
+    showAudioControls(context);
   }
 
   @override
@@ -337,80 +234,78 @@ class _MainScreenState extends State<MainScreen> with WidgetsBindingObserver {
                 ),
               ),
 
-              // 1. Daily Reward Container - full width
-Container(
-  margin: EdgeInsets.symmetric(horizontal: 4, vertical: 12), // minimal left/right margin
-  padding: EdgeInsets.all(16),
-  width: double.infinity,
-  decoration: BoxDecoration(
-    color: Colors.blue,
-    borderRadius: BorderRadius.circular(12),
-    border: Border.all(color: const Color.fromARGB(255, 22, 4, 124)),
-  ),
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text("Daily Reward - Day $currentDay",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-      SizedBox(height: 8),
-      Text("Get +${rewardScores[currentDay]} points today!"),
-      SizedBox(height: 8),
-      rewardAvailable
-          ? ElevatedButton(
-              onPressed: claimReward,
-              child: Text("Claim Reward"),
-            )
-          : Text("Next reward in: ${timeUntilNext.inHours.remainder(24).toString().padLeft(2, '0')}h "
-              "${timeUntilNext.inMinutes.remainder(60).toString().padLeft(2, '0')}m"),
-    ],
-  ),
-),
+              Container(
+                margin: EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+                padding: EdgeInsets.all(16),
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color.fromARGB(255, 22, 4, 124)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Daily Reward - Day $currentDay",
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    SizedBox(height: 8),
+                    Text("Get +${rewardScores[currentDay]} points today!"),
+                    SizedBox(height: 8),
+                    rewardAvailable
+                        ? ElevatedButton(
+                            onPressed: claimReward,
+                            child: Text("Claim Reward"),
+                          )
+                        : Text("Next reward in: ${timeUntilNext.inHours.remainder(24).toString().padLeft(2, '0')}h "
+                            "${timeUntilNext.inMinutes.remainder(60).toString().padLeft(2, '0')}m"),
+                  ],
+                ),
+              ),
 
-GestureDetector(
-  onTap: () {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => ChallengesScreen()),
-    );
-  },
-  child: Container(
-    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-    padding: EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.deepPurple.shade100,
-      borderRadius: BorderRadius.circular(15),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black26,
-          blurRadius: 6,
-          offset: Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Row(
-      children: [
-        Icon(Icons.track_changes, color: Colors.deepPurple, size: 30),
-        SizedBox(width: 12),
-        Text(
-          "Challenges",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w600,
-            color: Colors.deepPurple.shade800,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => ChallengesScreen()),
+                  );
+                },
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.deepPurple.shade100,
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black26,
+                        blurRadius: 6,
+                        offset: Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.track_changes, color: Colors.deepPurple, size: 30),
+                      SizedBox(width: 12),
+                      Text(
+                        "Challenges",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.deepPurple.shade800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
 
-// 2. DiagonalMediaGrid Container - full width
-Container(
-  height: 150,
-  width: double.infinity, // take all available width
-  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8), // minimal side padding
-  child: const DiagonalMediaGrid(),
-),
+              Container(
+                height: 150,
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                child: const DiagonalMediaGrid(),
+              ),
 
               Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -480,22 +375,6 @@ Container(
             }
           },
         ),
-      ),
-    );
-  }
-}
-
-class BlankScreen extends StatelessWidget {
-  final String gameName;
-
-  const BlankScreen({required this.gameName});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(gameName)),
-      body: Center(
-        child: Text("Blank screen for $gameName", style: TextStyle(fontSize: 20)),
       ),
     );
   }

@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:path/path.dart' as path;
-
+import '../audio_aware_screen.dart';
 import 'package:app/components/Bottombar.dart';
 import 'package:app/screen/Ads_screen.dart';
 import 'package:app/screen/Leaderboard.dart';
@@ -14,12 +14,12 @@ import 'package:app/screen/login_signup.dart';
 import 'package:app/screen/main_screen.dart';
 import 'package:app/screen/privacy_policy_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends AudioAwareScreen {
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
   final user = FirebaseAuth.instance.currentUser;
   String? username;
   String? email;
