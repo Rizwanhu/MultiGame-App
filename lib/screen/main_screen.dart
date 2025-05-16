@@ -178,10 +178,19 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
         if (details.primaryVelocity != null) {
           if (details.primaryVelocity! < 0) {
             // Swipe Right → ProfileScreen
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => LeaderboardPage()),
-            );
+             Navigator.pushReplacement(context, PageRouteBuilder(
+  transitionDuration: Duration(milliseconds: 300),
+  pageBuilder: (context, animation, secondaryAnimation) => LeaderboardPage(),
+  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: Offset(1.0, 0.0), // slide from right
+        end: Offset.zero,
+      ).animate(animation),
+      child: child,
+    );
+  },
+));
           }
           // Swipe Left → do nothing
         }

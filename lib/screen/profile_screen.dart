@@ -193,8 +193,19 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity != null) {
            if (details.primaryVelocity! > 0) {
-            Navigator.pushReplacement(
-                context, MaterialPageRoute(builder: (_) => AdsScreen()));
+           Navigator.pushReplacement(context, PageRouteBuilder(
+  transitionDuration: Duration(milliseconds: 300),
+  pageBuilder: (context, animation, secondaryAnimation) => AdsScreen(),
+  transitionsBuilder: (context, animation, secondaryAnimation, child) {
+    return SlideTransition(
+      position: Tween<Offset>(
+        begin: Offset(-1.0, 0.0), // slide from right
+        end: Offset.zero,
+      ).animate(animation),
+      child: child,
+    );
+  },
+));
           }
         }
       },
