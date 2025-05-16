@@ -180,8 +180,9 @@ class Game {
       b.number = b.number * 2;
       a.number = 0;
       
-      // Original scoring system - no modification needed
-      score += b.number;
+      // Modified scoring system - only add the value of the new tile
+      // This makes it harder to accumulate high scores quickly
+      score += b.number ~/ 4;
       
       b.isMerged = true;
     } else {
