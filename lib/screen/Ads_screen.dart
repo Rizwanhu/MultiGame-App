@@ -9,6 +9,7 @@ import 'profile_screen.dart';
 import '../../theme/theme_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:app/audio_service.dart';
 
 class AdsScreen extends StatefulWidget {
   final int initialIndex;
@@ -316,18 +317,21 @@ class _AdsScreenState extends State<AdsScreen> {
             currentIndex: currentIndex,
             onTap: (index) {
               if (index == 0) {
+                AudioService().playClickSound();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => MainScreen()),
                   (route) => false,
                 );
               } else if (index == 1) {
+                AudioService().playClickSound();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => LeaderboardPage()),
                   (route) => false,
                 );
               } else if (index == 3) {
+                AudioService().playClickSound();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => ProfileScreen()),

@@ -117,9 +117,11 @@ flutter:
     - assets/images/badges/gold.png
     - assets/images/badges/silver.png
     - assets/images/badges/bronze.png
+    - assets/images/icon.png
     
 
     - assets/audio/background_music.mp3
+    - assets/audio/click.mp3
     
     
   # Add fonts section
@@ -135,4 +137,4 @@ flutter:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/icon.png"
+  image_path: "assets/images/icon.png"

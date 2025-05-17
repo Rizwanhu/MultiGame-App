@@ -15,6 +15,7 @@ import 'package:app/screen/main_screen.dart';
 import 'package:app/screen/privacy_policy_screen.dart';
 import 'Challange_History.dart';
 import 'package:app/services/auth_service.dart';
+import 'package:app/audio_service.dart';
 
 class ProfileScreen extends AudioAwareScreen {
   @override
@@ -132,6 +133,7 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
               leading: Icon(Icons.camera_alt, color: Colors.blue),
               title: Text("Take Photo"),
               onTap: () {
+                AudioService().playClickSound();
                 Navigator.pop(context);
                 pickImage(source: ImageSource.camera);
               },
@@ -141,6 +143,7 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
               leading: Icon(Icons.photo_library, color: Colors.green),
               title: Text("Choose from Gallery"),
               onTap: () {
+                AudioService().playClickSound();
                 Navigator.pop(context);
                 pickImage(source: ImageSource.gallery);
               },
@@ -373,6 +376,7 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
                             icon: Icons.privacy_tip,
                             title: "Privacy Policy",
                             onTap: () {
+                              AudioService().playClickSound();
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -387,6 +391,7 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
                             icon: Icons.history,
                             title: "Challenge History",
                             onTap: () {
+                              AudioService().playClickSound();
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -400,6 +405,7 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
                             icon: Icons.logout,
                             title: "Log Out",
                             onTap: () {
+                              AudioService().playClickSound();
                               Navigator.pushAndRemoveUntil(
                                 context,
                                 MaterialPageRoute(builder: (_) => LoginPage()),
@@ -420,18 +426,21 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
           currentIndex: currentIndex,
           onTap: (index) {
             if (index == 0) {
+              AudioService().playClickSound();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => MainScreen()),
                 (route) => false,
               );
             } else if (index == 1) {
+              AudioService().playClickSound();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => LeaderboardPage()),
                 (route) => false,
               );
             } else if (index == 2) {
+              AudioService().playClickSound();
               Navigator.pushAndRemoveUntil(
                 context,
                 MaterialPageRoute(builder: (context) => AdsScreen()),

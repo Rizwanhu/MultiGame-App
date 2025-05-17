@@ -14,6 +14,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 import '../audio_aware_screen.dart';
 import 'challenges.dart';
+import '../audio_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -133,7 +134,8 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
     if (user == null) return;
 
     final scoreToAdd = rewardScores[currentDay];
-    final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    final userDoc =
+        FirebaseFirestore.instance.collection('users').doc(user.uid);
 
     await FirebaseFirestore.instance.runTransaction((transaction) async {
       final snapshot = await transaction.get(userDoc);
@@ -170,9 +172,11 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
         content: Text("You received +$scoreToAdd points!"),
         actions: [
           TextButton(
-            child: Text("OK"),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+              child: Text("OK"),
+              onPressed: () {
+                AudioService().playClickSound();
+                Navigator.of(context).pop();
+              }),
         ],
       ),
     );
@@ -192,19 +196,23 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
         if (details.primaryVelocity != null) {
           if (details.primaryVelocity! < 0) {
             // Swipe Right → ProfileScreen
-             Navigator.pushReplacement(context, PageRouteBuilder(
-  transitionDuration: Duration(milliseconds: 300),
-  pageBuilder: (context, animation, secondaryAnimation) => LeaderboardPage(),
-  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: Offset(1.0, 0.0), // slide from right
-        end: Offset.zero,
-      ).animate(animation),
-      child: child,
-    );
-  },
-));
+            Navigator.pushReplacement(
+                context,
+                PageRouteBuilder(
+                  transitionDuration: Duration(milliseconds: 300),
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      LeaderboardPage(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    return SlideTransition(
+                      position: Tween<Offset>(
+                        begin: Offset(1.0, 0.0), // slide from right
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    );
+                  },
+                ));
           }
           // Swipe Left → do nothing
         }
@@ -240,7 +248,10 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
           actions: [
             IconButton(
               icon: Icon(Icons.settings),
-              onPressed: openDrawer,
+              onPressed: () {
+                AudioService().playClickSound();
+                openDrawer();
+              },
             ),
             Padding(
               padding: const EdgeInsets.only(right: 2.0),
@@ -298,10 +309,13 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                       Text("Get +${rewardScores[currentDay]} points today!"),
                       SizedBox(height: 8),
                       rewardAvailable
-                          ? ElevatedButton(
-                              onPressed: claimReward,
-                              child: Text("Claim Reward"),
-                            )
+    ? ElevatedButton(
+        onPressed: () {
+          AudioService().playClickSound(); 
+          claimReward();                   
+        },
+        child: Text("Claim Reward"),
+      )
                           : Text(
                               "Next reward in: ${timeUntilNext.inHours.remainder(24).toString().padLeft(2, '0')}h "
                               "${timeUntilNext.inMinutes.remainder(60).toString().padLeft(2, '0')}m"),
@@ -310,6 +324,7 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                 ),
                 GestureDetector(
                   onTap: () {
+                    AudioService().playClickSound();
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -318,7 +333,8 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                   },
                   child: Container(
                     margin: EdgeInsets.symmetric(horizontal: 4, vertical: 12),
-                    padding: EdgeInsets.only(top: 12, left: 16, right: 16, bottom: 16),
+                    padding: EdgeInsets.only(
+                        top: 12, left: 16, right: 16, bottom: 16),
                     height: 130, // Added fixed height
                     width: double.infinity,
                     decoration: BoxDecoration(
@@ -397,6 +413,7 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                     children: games.map((game) {
                       return GestureDetector(
                         onTap: () {
+                          AudioService().playClickSound();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -428,6 +445,7 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
           child: CustomBottomBar(
             currentIndex: currentIndex,
             onTap: (index) {
+              AudioService().playClickSound();
               if (index == 1) {
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -437,6 +455,7 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                   (route) => false,
                 );
               } else if (index == 2) {
+                AudioService().playClickSound();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
@@ -444,6 +463,7 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                   (route) => false,
                 );
               } else if (index == 3) {
+                AudioService().playClickSound();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (context) => ProfileScreen()),

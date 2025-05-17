@@ -6,6 +6,7 @@ import 'dart:io';
 import 'main_screen.dart';
 import 'register.dart'; // This is your SignUpPage
 import '../services/auth_service.dart';
+import 'package:app/audio_service.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -52,6 +53,7 @@ class _LoginPageState extends State<LoginPage> {
       );
 
       if (!mounted) return;
+      AudioService().playClickSound();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MainScreen()),
@@ -115,6 +117,7 @@ class _LoginPageState extends State<LoginPage> {
       await _auth.signInWithGoogle();
 
       if (!mounted) return;
+      AudioService().playClickSound();
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => MainScreen()),
@@ -287,7 +290,9 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: _isLoading ? null : _signInWithGoogle,
+                        onPressed:
+                        
+                         _isLoading ? null : _signInWithGoogle,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [

@@ -6,6 +6,7 @@ import '../Games/CardFlipper/CardFlipper.dart';
 import '../Games/SnakeGame/SnakeGame.dart';  
 import '../Games/TicTacToe_AI/TicTacToe.dart' as tictactoe;  // Added prefix
 import '../Games/2048_Game/2048.dart' as game2048;  // Added prefix
+import 'package:app/audio_service.dart';
 
 class GameDetailScreen extends StatelessWidget {
   final String gameName;
@@ -85,6 +86,7 @@ class GameDetailScreen extends StatelessWidget {
                   ElevatedButton.icon(
                     
                     onPressed: () async {
+                      AudioService().playClickSound(); 
                       const youtubeUrl = 'https://www.youtube.com'; 
                       if (await canLaunchUrl(Uri.parse(youtubeUrl))) {
                         await launchUrl(Uri.parse(youtubeUrl), mode: LaunchMode.externalApplication);
@@ -139,21 +141,25 @@ class GameDetailScreen extends StatelessWidget {
                     label: "PLAY\nGAME",
                     onTap: () {
   if (gameName == "Card Flipper") {
+    AudioService().playClickSound(); 
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => CardFlipperGame()),
     );
   } else if (gameName == "Snake Game") {
+    AudioService().playClickSound(); 
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => GamePage()),
     );
   } else if (gameName == "Tic Tac Toe") {
+    AudioService().playClickSound(); 
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => tictactoe.MyApp()),
     );
   } else if (gameName == "2048") {
+    AudioService().playClickSound(); 
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => game2048.MyApp()),
@@ -183,7 +189,9 @@ class GameDetailScreen extends StatelessWidget {
 
                   // Back Button
                   GestureDetector(
-                    onTap: () => Navigator.pop(context),
+                    onTap: () => 
+                    
+                    Navigator.pop(context),
                     child: Container(
                       width: 100,
                       padding: EdgeInsets.symmetric(vertical: 10),

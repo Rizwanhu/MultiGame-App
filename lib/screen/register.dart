@@ -2,7 +2,7 @@ import 'login_signup.dart';
 import 'main_screen.dart';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-
+import 'package:app/audio_service.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -184,6 +184,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () async {
+                          AudioService().playClickSound();
                           if (_formKey.currentState!.validate()) {
                             _formKey.currentState!.save();
     try {
@@ -195,7 +196,9 @@ class _SignUpPageState extends State<SignUpPage> {
           content: Text('Welcome $username!\nEmail: $email'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.push(
+              onPressed: () =>
+              
+               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => LoginPage()),
               ),

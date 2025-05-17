@@ -8,6 +8,7 @@ import 'main_screen.dart';
 import 'profile_screen.dart';
 import 'ads_screen.dart';
 import 'league_page.dart';
+import 'package:app/audio_service.dart';
 
 class LeaderboardPage extends StatefulWidget {
   final int initialIndex;
@@ -262,6 +263,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           bottomNavigationBar: CustomBottomBar(
             currentIndex: currentIndex,
             onTap: (index) {
+              AudioService().playClickSound();
               if (index == 0) {
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -269,12 +271,14 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
                   (route) => false,
                 );
               } else if (index == 2) {
+                AudioService().playClickSound();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => AdsScreen()),
                   (route) => false,
                 );
               } else if (index == 3) {
+                AudioService().playClickSound();
                 Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(builder: (_) => ProfileScreen()),
@@ -289,6 +293,7 @@ class _LeaderboardPageState extends State<LeaderboardPage> {
           ),
           floatingActionButton: FloatingActionButton(
             onPressed: () {
+              AudioService().playClickSound();
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => LeaguePage()),
