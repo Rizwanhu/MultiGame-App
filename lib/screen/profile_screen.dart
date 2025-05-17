@@ -159,7 +159,7 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
   }
 
   String? getBadgeImagePath(int score) {
-    if (score >= 10000) return 'assets/images/badges/diamond.png';
+    if (score >= 15000) return 'assets/images/badges/diamond.png';
     if (score >= 6000) return 'assets/images/badges/gold.png';
     if (score >= 2000) return 'assets/images/badges/silver.png';
     if (score >= 750) return 'assets/images/badges/bronze.png';
@@ -167,11 +167,11 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
   }
 
   String getBadgeName(int score) {
-    if (score >= 10000) return "Diamond";
-    if (score >= 8000) return "Gold I";
-    if (score >= 7000) return "Gold II";
+    if (score >= 15000) return "Diamond";
+    if (score >= 10000) return "Gold I";
+    if (score >= 7500) return "Gold II";
     if (score >= 6000) return "Gold III";
-    if (score >= 4000) return "Silver I";
+    if (score >= 4500) return "Silver I";
     if (score >= 3000) return "Silver II";
     if (score >= 2000) return "Silver III";
     if (score >= 1500) return "Bronze I";
