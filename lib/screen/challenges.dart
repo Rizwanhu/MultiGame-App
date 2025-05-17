@@ -139,6 +139,44 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     }
   }
 
+  Future<bool> _verifyChallenge(Challenge challenge) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+
+    try {
+      final history = await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .collection('scoreHistory')
+          .get();
+
+      switch (challenge.type) {
+        case ChallengeType.score:
+          // Verify if user has scored the required points in any game
+          return history.docs.any((doc) {
+            final data = doc.data();
+            return (data['score'] ?? 0) >= challenge.targetValue;
+          });
+        case ChallengeType.gamesPlayed:
+          // Count number of game sessions
+          return history.docs.where((doc) => 
+            doc.data()['source'] != 'Challenge'
+          ).length >= challenge.targetValue;
+        case ChallengeType.wins:
+          // Count wins from history
+          return history.docs.where((doc) {
+            final data = doc.data();
+            return data['source'] == 'Game Win';
+          }).length >= challenge.targetValue;
+        default:
+          return false;
+      }
+    } catch (e) {
+      print('Error verifying challenge: $e');
+      return false;
+    }
+  }
+
   Future<void> _updateChallengeProgress(ChallengeType type, int amount) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || amount <= 0) return;
@@ -147,31 +185,17 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       final relevantChallenges = activeChallenges.where((c) => c.type == type);
       if (relevantChallenges.isEmpty) return;
 
-      final updates = <String, dynamic>{};
-      bool needsRefresh = false;
-
       for (var challenge in relevantChallenges) {
-        final currentProgress = userProgress[challenge.id] ?? 0;
-        if (currentProgress == -1) continue; // Already claimed
-        
-        final newProgress = min(currentProgress + amount, challenge.targetValue);
-        updates['challengeProgress.${challenge.id}'] = newProgress;
-
-        if (newProgress >= challenge.targetValue && currentProgress < challenge.targetValue) {
-          needsRefresh = true;
-        }
-      }
-
-      if (updates.isNotEmpty) {
-        await _firestore.collection('users').doc(user.uid).update(updates);
-        
-        // Update local state
-        setState(() {
-          updates.forEach((key, value) {
-            final challengeId = key.replaceFirst('challengeProgress.', '');
-            userProgress[challengeId] = value;
+        if (await _verifyChallenge(challenge)) {
+          final updates = {
+            'challengeProgress.${challenge.id}': challenge.targetValue
+          };
+          await _firestore.collection('users').doc(user.uid).update(updates);
+          
+          setState(() {
+            userProgress[challenge.id] = challenge.targetValue;
           });
-        });
+        }
       }
     } catch (e) {
       print('Error updating challenge progress: $e');
@@ -328,26 +352,28 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                                   children: [
                                     Text(
                                       '$progress/${challenge.targetValue}',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
+                                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
                                     ),
-                                    ElevatedButton(
-                                      onPressed: isCompleted && !isClaimed
-                                          ? () => _claimReward(challenge)
-                                          : null,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.deepPurple,
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(20),
+                                    if (!isClaimed)
+                                      ElevatedButton(
+                                        onPressed: isCompleted ? () => _claimReward(challenge) : () async {
+                                          if (await _verifyChallenge(challenge)) {
+                                            await _updateChallengeProgress(challenge.type, challenge.targetValue);
+                                          }
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.deepPurple,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(20),
+                                          ),
                                         ),
-                                      ),
-                                      child: Text(
-                                        isClaimed ? 'Claimed' : 'Claim Reward',
-                                        style: const TextStyle(color: Colors.white),
-                                      ),
-                                    ),
+                                        child: Text(
+                                          isCompleted ? 'Claim Reward' : 'Verify Challenge',
+                                          style: const TextStyle(color: Colors.white),
+                                        ),
+                                      )
+                                    else
+                                      Text('Claimed', style: TextStyle(color: Colors.grey)),
                                   ],
                                 ),
                               ],
