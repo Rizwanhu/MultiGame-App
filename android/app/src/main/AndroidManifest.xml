@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" /> <!-- Optional for older Android versions -->
 
     <application
-        android:label="multigame_new"
+        android:label="MultiGame"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
 
