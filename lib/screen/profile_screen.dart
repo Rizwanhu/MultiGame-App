@@ -14,6 +14,7 @@ import 'package:app/screen/login_signup.dart';
 import 'package:app/screen/main_screen.dart';
 import 'package:app/screen/privacy_policy_screen.dart';
 import 'Challange_History.dart';
+import 'package:app/services/auth_service.dart';
 
 class ProfileScreen extends AudioAwareScreen {
   @override

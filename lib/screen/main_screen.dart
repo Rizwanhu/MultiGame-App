@@ -317,11 +317,14 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                     );
                   },
                   child: Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                    padding: EdgeInsets.all(16),
+                    margin: EdgeInsets.symmetric(horizontal: 4, vertical: 12),
+                    padding: EdgeInsets.only(top: 12, left: 16, right: 16, bottom: 16),
+                    height: 130, // Added fixed height
+                    width: double.infinity,
                     decoration: BoxDecoration(
                       color: Colors.deepPurple.shade100,
-                      borderRadius: BorderRadius.circular(15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.deepPurple.shade800),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black26,
@@ -330,18 +333,47 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.track_changes,
-                            color: Colors.deepPurple, size: 30),
-                        SizedBox(width: 12),
+                        Row(
+                          children: [
+                            Icon(Icons.track_changes,
+                                color: Colors.deepPurple, size: 30),
+                            SizedBox(width: 12),
+                            Text(
+                              "Challenges",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.deepPurple.shade800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 4),
                         Text(
-                          "Challenges",
+                          "Complete challenges to earn more points!",
                           style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.deepPurple.shade800,
+                            color: Colors.deepPurple.shade600,
                           ),
+                        ),
+                        Spacer(),
+                        Row(
+                          children: [
+                            // Image.asset(
+                            //   'assets/images/dragon.gif',
+                            //   width: 50,
+                            //   height: 40,
+                            //   fit: BoxFit.contain,
+                            // ),
+                            Spacer(),
+                            Icon(
+                              Icons.arrow_forward,
+                              color: Colors.deepPurple.shade800,
+                              size: 24,
+                            ),
+                          ],
                         ),
                       ],
                     ),
