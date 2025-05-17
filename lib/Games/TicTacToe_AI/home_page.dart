@@ -321,10 +321,22 @@ else {
   Future<void> _updateScore(int points) async {
   final user = FirebaseAuth.instance.currentUser;
   if (user != null) {
-    final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
-    final doc = await docRef.get();
+    final userDocRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+    
+    // Get the current score
+    final doc = await userDocRef.get();
     final currentScore = doc.data()?['score'] ?? 0;
-    await docRef.update({'score': currentScore + points});
+    
+    // Update total score
+    await userDocRef.update({'score': currentScore + points});
+    
+    // Add score history entry
+    await userDocRef.collection('scoreHistory').add({
+      'score': points,
+      'source': 'TicTacToe',
+      'timestamp': FieldValue.serverTimestamp(),
+      'details': points == 50 ? 'Game Win' : points == 25 ? 'Game Draw' : 'Game Loss'
+    });
   }
 }
 

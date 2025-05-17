@@ -133,13 +133,27 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
     if (user == null) return;
 
     final scoreToAdd = rewardScores[currentDay];
+    final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
 
-    final userDoc =
-        FirebaseFirestore.instance.collection('users').doc(user.uid);
-    await userDoc.update({
-      'score': FieldValue.increment(scoreToAdd),
-      'lastClaimed': Timestamp.now(),
-      'rewardDay': currentDay < 7 ? currentDay + 1 : 1,
+    await FirebaseFirestore.instance.runTransaction((transaction) async {
+      final snapshot = await transaction.get(userDoc);
+      final currentScore = snapshot.data()?['score'] ?? 0;
+
+      // Update main score
+      transaction.update(userDoc, {
+        'score': currentScore + scoreToAdd,
+        'lastClaimed': Timestamp.now(),
+        'rewardDay': currentDay < 7 ? currentDay + 1 : 1,
+      });
+
+      // Add score history entry
+      final historyRef = userDoc.collection('scoreHistory').doc();
+      transaction.set(historyRef, {
+        'score': scoreToAdd,
+        'source': 'Daily Reward',
+        'timestamp': FieldValue.serverTimestamp(),
+        'details': 'Day $currentDay reward claimed'
+      });
     });
 
     setState(() {

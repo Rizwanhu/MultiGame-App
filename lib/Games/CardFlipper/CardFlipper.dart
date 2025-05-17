@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'card_board.dart';
 import '../../screen/main_screen.dart';
 import '../../services/auth_service.dart'; // Add this import
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 
 class CardFlipperGame extends StatelessWidget {
@@ -111,10 +112,22 @@ class MyHomePageState extends State<MyHomePage> {
     final user = AuthService().currentUser;
     if (user != null) {
       final docRef = AuthService().firestore.collection('users').doc(user.uid);
-      final snapshot = await docRef.get();
-      final currentScore = snapshot.data()?['score'] ?? 0;
-      final newScore = currentScore + score;
-      await docRef.update({'score': newScore});
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final snapshot = await transaction.get(docRef);
+        final currentScore = snapshot.data()?['score'] ?? 0;
+        
+        // Update main score
+        transaction.update(docRef, {'score': currentScore + score});
+        
+        // Add to score history with details
+        final historyRef = docRef.collection('scoreHistory').doc();
+        transaction.set(historyRef, {
+          'score': score,
+          'source': 'Card Flipper Game',
+          'timestamp': FieldValue.serverTimestamp(),
+          'details': 'Time taken: ${time}s | Score: $score | Max possible: 200'
+        });
+      });
     }
 
     showDialog(

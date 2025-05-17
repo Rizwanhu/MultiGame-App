@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
 
+
 class ChallengesScreen extends StatefulWidget {
   const ChallengesScreen({Key? key}) : super(key: key);
 
@@ -197,10 +198,29 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
         ),
       );
 
-      // Update user score and mark challenge as claimed
-      await _firestore.collection('users').doc(user.uid).update({
-        'score': FieldValue.increment(challenge.reward),
-        'challengeProgress.${challenge.id}': -1,
+      // Get user document reference
+      final userDoc = _firestore.collection('users').doc(user.uid);
+
+      // Update user score, mark challenge as claimed, and add to score history
+      await _firestore.runTransaction((transaction) async {
+        // Get current score
+        final snapshot = await transaction.get(userDoc);
+        final currentScore = snapshot.data()?['score'] ?? 0;
+
+        // Update main score and challenge progress
+        transaction.update(userDoc, {
+          'score': currentScore + challenge.reward,
+          'challengeProgress.${challenge.id}': -1,
+        });
+
+        // Add score history entry
+        final historyRef = userDoc.collection('scoreHistory').doc();
+        transaction.set(historyRef, {
+          'score': challenge.reward,
+          'source': 'Challenge',
+          'timestamp': FieldValue.serverTimestamp(),
+          'details': 'Completed challenge: ${challenge.title}'
+        });
       });
 
       // Update local state

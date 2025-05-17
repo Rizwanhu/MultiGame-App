@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'control_panel.dart';
 import 'direction.dart';
@@ -86,7 +87,6 @@ class _GamePageState extends State<Game> {
   }
 
   void showGameOverDialog() async {
-  
     isGameOver = true;
     
     final user = FirebaseAuth.instance.currentUser;
@@ -95,7 +95,17 @@ class _GamePageState extends State<Game> {
       final docSnap = await docRef.get();
       final currentScore = docSnap.data()?['score'] ?? 0;
       final updatedScore = currentScore + score;
+      
+      // Update main score
       await docRef.update({'score': updatedScore});
+      
+      // Add to score history
+      await docRef.collection('scoreHistory').add({
+        'score': score,
+        'source': 'Snake Game',
+        'timestamp': FieldValue.serverTimestamp(),
+        'details': 'Final Score: $score points | Snake Length: $length | Speed: ${speed.toStringAsFixed(2)}x'
+      });
     }
 
     if (!mounted) return;

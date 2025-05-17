@@ -5,7 +5,9 @@ import '../widgets/cellwidget.dart';
 import '../constants.dart';
 import '../models/data.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../../../screen/main_screen.dart';
 
 class GameScreen extends StatelessWidget {
   @override
@@ -88,9 +90,33 @@ class GameWidgetState extends State<GameWidget> {
       _isGameOver = true;
       
       // To ensure we don't call this multiple times
-      Future.delayed(Duration(milliseconds: 300), () {
+      Future.delayed(Duration(milliseconds: 300), () async {
         String title = "Game Over";
         int scoreEnd = _game.score;
+        
+        // Update Firebase score and history
+        final user = FirebaseAuth.instance.currentUser;
+        if (user != null) {
+          final docRef = FirebaseFirestore.instance.collection('users').doc(user.uid);
+          
+          await FirebaseFirestore.instance.runTransaction((transaction) async {
+            final snapshot = await transaction.get(docRef);
+            final currentScore = snapshot.data()?['score'] ?? 0;
+            
+            // Update main score
+            transaction.update(docRef, {'score': currentScore + scoreEnd});
+            
+            // Add score history with details
+            final historyRef = docRef.collection('scoreHistory').doc();
+            transaction.set(historyRef, {
+              'score': scoreEnd,
+              'source': '2048 Game',
+              'timestamp': FieldValue.serverTimestamp(),
+              'details': 'Game Over Score: $scoreEnd | Best Score: $bestScore | ' +
+                        'New High Score: ${scoreEnd > bestScore ? "Yes" : "No"}'
+            });
+          });
+        }
         
         if (scoreEnd > bestScore) {
           saveScore(scoreEnd);
@@ -113,7 +139,13 @@ class GameWidgetState extends State<GameWidget> {
                   "Close",
                   style: dialogTextStyle,
                 ),
-                onPressed: () => Navigator.pop(context),
+                onPressed: () {
+                  Navigator.pop(context); // Close dialog
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => MainScreen()),
+                  );
+                },
                 width: 120,
               ),
               DialogButton(
@@ -123,19 +155,19 @@ class GameWidgetState extends State<GameWidget> {
                 ),
                 onPressed: () {
                   Navigator.pop(context);
-                  // Delay starting new game slightly to avoid any state issues
-                  Future.delayed(Duration(milliseconds: 100), () {
-                    if (mounted) {
-                      newGame();
-                    }
+                  setState(() {
+                    _isGameOver = false;
+                    newGame();
                   });
                 },
                 gradient: backgroundGradient,
               )
             ],
             closeFunction: () {
-              // Make sure we can show another dialog later if needed
-              _isGameOver = true;
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => MainScreen()),
+              );
             },
           ).show();
         }

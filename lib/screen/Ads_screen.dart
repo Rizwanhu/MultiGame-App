@@ -113,14 +113,27 @@ class _AdsScreenState extends State<AdsScreen> {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user != null) {
-        final userDoc =
-            FirebaseFirestore.instance.collection('users').doc(user.uid);
+        final userDoc = FirebaseFirestore.instance.collection('users').doc(user.uid);
+        
         await FirebaseFirestore.instance.runTransaction((transaction) async {
+          // Get current score
           final snapshot = await transaction.get(userDoc);
           final currentScore = snapshot.data()?['score'] ?? 0;
+          
+          // Update main score
           transaction.update(userDoc, {'score': currentScore + points});
+          
+          // Add to score history
+          final historyRef = userDoc.collection('scoreHistory').doc();
+          transaction.set(historyRef, {
+            'score': points,
+            'source': 'Ad Watch',
+            'timestamp': FieldValue.serverTimestamp(),
+            'details': 'Earned from watching advertisement'
+          });
         });
-        print('✅ Score updated in Firestore!');
+        
+        print('✅ Score and history updated in Firestore!');
       } else {
         print('⚠️ No user signed in.');
       }

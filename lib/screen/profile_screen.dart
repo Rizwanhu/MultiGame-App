@@ -13,6 +13,7 @@ import 'package:app/screen/Leaderboard.dart';
 import 'package:app/screen/login_signup.dart';
 import 'package:app/screen/main_screen.dart';
 import 'package:app/screen/privacy_policy_screen.dart';
+import 'Challange_History.dart';
 
 class ProfileScreen extends AudioAwareScreen {
   @override
@@ -381,6 +382,19 @@ class _ProfileScreenState extends AudioAwareScreenState<ProfileScreen> {
                           ),
                           Divider(
                               height: 1, thickness: 0.5, color: dividerColor),
+                          MenuItemTile(
+                            icon: Icons.history,
+                            title: "Challenge History",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => ChallengeHistoryScreen()),
+                              );
+                            },
+                            isDarkMode: isDarkMode,
+                          ),
+                          Divider(height: 1, thickness: 0.5, color: dividerColor),
                           MenuItemTile(
                             icon: Icons.logout,
                             title: "Log Out",
