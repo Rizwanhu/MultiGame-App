@@ -9,8 +9,10 @@ import 'profile_screen.dart';
 import 'ads_screen.dart';
 import 'league_page.dart';
 import 'package:app/audio_service.dart';
+import '../audio_aware_screen.dart';
 
-class LeaderboardPage extends StatefulWidget {
+
+class LeaderboardPage extends AudioAwareScreen {
   final int initialIndex;
   LeaderboardPage({this.initialIndex = 1});
 
@@ -18,7 +20,7 @@ class LeaderboardPage extends StatefulWidget {
   _LeaderboardPageState createState() => _LeaderboardPageState();
 }
 
-class _LeaderboardPageState extends State<LeaderboardPage> {
+class _LeaderboardPageState extends AudioAwareScreenState<LeaderboardPage> {
   int userScore = 0;
   late int currentIndex;
   List<Map<String, dynamic>> leaderboardUsers = [];

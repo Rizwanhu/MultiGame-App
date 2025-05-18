@@ -7,15 +7,15 @@ import 'main_screen.dart';
 import 'register.dart'; // This is your SignUpPage
 import '../services/auth_service.dart';
 import 'package:app/audio_service.dart';
-
-class LoginPage extends StatefulWidget {
+import '../audio_aware_screen.dart';
+class LoginPage extends AudioAwareScreen {
   const LoginPage({super.key});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _LoginPageState extends AudioAwareScreenState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();

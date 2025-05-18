@@ -10,8 +10,9 @@ import '../../theme/theme_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:app/audio_service.dart';
+import '../audio_aware_screen.dart';
 
-class AdsScreen extends StatefulWidget {
+class AdsScreen extends AudioAwareScreen {
   final int initialIndex;
   const AdsScreen({this.initialIndex = 2, Key? key}) : super(key: key);
 
@@ -19,7 +20,7 @@ class AdsScreen extends StatefulWidget {
   State<AdsScreen> createState() => _AdsScreenState();
 }
 
-class _AdsScreenState extends State<AdsScreen> {
+class _AdsScreenState extends AudioAwareScreenState<AdsScreen> {
   late int currentIndex;
   RewardedAd? _rewardedAd;
   bool _isAdLoaded = false;
