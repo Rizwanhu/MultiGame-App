@@ -1,3 +1,4 @@
+// challenges.dart
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -50,11 +51,11 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       type: ChallengeType.ticTacToeDraws,
     ),
     Challenge(
-      id: '2048_512',
-      title: 'Merge 512 Tile in 2048',
-      description: 'Reach 512 tile in the 2048 Game',
+      id: '2048_128',
+      title: 'Merge 128 Tile in 2048',
+      description: 'Reach 128 tile in the 2048 Game',
       reward: 35,
-      targetValue: 512,
+      targetValue: 128,
       type: ChallengeType.mergeTile2048,
     ),
   ];
@@ -70,6 +71,14 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     _loadUserData();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!isLoading) {
+      _verifyAllChallenges();
+    }
+  }
+
   Future<void> _loadUserData() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -79,20 +88,23 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       final now = DateTime.now();
       final today = DateTime(now.year, now.month, now.day);
 
-      if (!doc.exists || 
-          (doc.data()?['challengesLastUpdated'] as Timestamp?)?.toDate().isBefore(today) == true) {
+      final data = doc.data();
+      final storedChallenges = List<Map<String, dynamic>>.from(data?['activeChallenges'] ?? []);
+      final storedChallengeIds = storedChallenges.map((c) => c['id']).toSet();
+      final currentChallengeIds = allChallenges.map((c) => c.id).toSet();
+      final containsInvalid = storedChallengeIds.any((id) => !currentChallengeIds.contains(id));
+
+      if (!doc.exists ||
+          (data?['challengesLastUpdated'] as Timestamp?)?.toDate().isBefore(today) == true ||
+          containsInvalid) {
         await _generateNewChallenges(user.uid);
       } else {
-        final challengesData = List<Map<String, dynamic>>.from(
-            doc.data()?['activeChallenges'] ?? []);
-        activeChallenges = challengesData
+        activeChallenges = storedChallenges
             .map((data) => Challenge.fromMap(data))
             .where((c) => allChallenges.any((ac) => ac.id == c.id))
             .toList();
 
-        userProgress = Map<String, int>.from(
-            doc.data()?['challengeProgress'] ?? {});
-
+        userProgress = Map<String, int>.from(data?['challengeProgress'] ?? {});
         for (var challenge in activeChallenges) {
           userProgress.putIfAbsent(challenge.id, () => 0);
         }
@@ -101,34 +113,33 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
       print('Error loading challenges: $e');
     }
 
-    // Verify challenges after loading
     await _verifyAllChallenges();
-    
     setState(() => isLoading = false);
   }
 
   Future<void> _verifyAllChallenges() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-    
+
     bool anyProgressUpdated = false;
-    
+
     for (var challenge in activeChallenges) {
-      // Skip already claimed challenges
       if (userProgress[challenge.id] == -1) continue;
-      
+
       final progress = await _calculateChallengeProgress(challenge);
       if (progress != userProgress[challenge.id]) {
         userProgress[challenge.id] = progress;
         anyProgressUpdated = true;
       }
     }
-    
+
     if (anyProgressUpdated) {
       await _firestore.collection('users').doc(user.uid).update({
         'challengeProgress': userProgress,
       });
     }
+
+    setState(() {});
   }
 
   Future<void> _generateNewChallenges(String userId) async {
@@ -136,7 +147,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     final availableChallenges = List<Challenge>.from(allChallenges)..shuffle(random);
 
     activeChallenges = availableChallenges.take(3).toList();
-    userProgress = { for (var c in activeChallenges) c.id: 0 };
+    userProgress = {for (var c in activeChallenges) c.id: 0};
 
     await _saveChallenges(userId);
   }
@@ -166,53 +177,38 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
 
       switch (challenge.type) {
         case ChallengeType.cardFlipperScore:
-          // Find highest score in CardFlipper
-          final cardFlipperDocs = history.docs.where(
-              (doc) => doc.data()['source'] == 'CardFlipper');
-          int highestScore = 0;
-          for (var doc in cardFlipperDocs) {
-            final score = doc.data()['score'] ?? 0;
-            if (score > highestScore) highestScore = score;
-          }
-          return highestScore;
-          
         case ChallengeType.snakeScore:
-          // Find highest score in Snake
-          final snakeDocs = history.docs.where(
-              (doc) => doc.data()['source'] == 'Snake');
-          int highestScore = 0;
-          for (var doc in snakeDocs) {
+          final source = challenge.type == ChallengeType.cardFlipperScore ? 'CardFlipper' : 'Snake';
+          int maxScore = 0;
+          for (var doc in history.docs.where((d) => d.data()['source'] == source)) {
             final score = doc.data()['score'] ?? 0;
-            if (score > highestScore) highestScore = score;
+            if (score > maxScore) maxScore = score;
           }
-          return highestScore;
-          
+          return maxScore;
+
         case ChallengeType.mergeTile2048:
-          // Find highest tile in 2048
-          final game2048Docs = history.docs.where(
-              (doc) => doc.data()['source'] == '2048');
-          int highestTile = 0;
-          for (var doc in game2048Docs) {
-            final details = doc.data()['details'] as String?;
-            if (details != null && details.contains('Reached tile:')) {
-              final tileStr = details.split('Reached tile:')[1].trim();
-              final tile = int.tryParse(tileStr) ?? 0;
-              if (tile > highestTile) highestTile = tile;
+          final docs = history.docs.where((d) => d.data()['source'] == '2048');
+          int maxTile = 0;
+          for (var doc in docs) {
+            final details = doc.data()['details'] ?? '';
+            final match = RegExp(r'Reached tile: (\d+)').firstMatch(details);
+            if (match != null) {
+              final value = int.tryParse(match.group(1)!);
+              if (value != null && value > maxTile) {
+                maxTile = value;
+              }
             }
           }
-          return highestTile;
-          
+          return maxTile;
+
         case ChallengeType.cardFlipperGames:
-          // Count CardFlipper games played
-          return history.docs.where((doc) =>
-              doc.data()['source'] == 'CardFlipper').length;
-              
+          return history.docs.where((d) => d.data()['source'] == 'CardFlipper').length;
+
         case ChallengeType.ticTacToeDraws:
-          // Count Tic Tac Toe draws
-          return history.docs.where((doc) =>
-              doc.data()['source'] == 'TicTacToe' && 
-              (doc.data()['details'] as String?)?.contains('Draw') == true).length;
-              
+          return history.docs.where((d) =>
+              d.data()['source'] == 'TicTacToe' &&
+              (d.data()['details'] as String?)?.contains('Draw') == true).length;
+
         default:
           return 0;
       }
@@ -226,48 +222,34 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || amount <= 0) return;
 
-    try {
-      final relevantChallenges = activeChallenges.where((c) => c.type == type).toList();
-      if (relevantChallenges.isEmpty) return;
+    final relevantChallenges = activeChallenges.where((c) => c.type == type).toList();
+    if (relevantChallenges.isEmpty) return;
 
-      // Update progress for all relevant challenges
-      Map<String, int> updatedProgress = Map.from(userProgress);
-      bool hasChanges = false;
-      
-      for (var challenge in relevantChallenges) {
-        // Skip already claimed challenges
-        if (updatedProgress[challenge.id] == -1) continue;
-        
-        final currentProgress = updatedProgress[challenge.id] ?? 0;
-        int newProgress;
-        
-        // For cumulative challenges, add to the progress
-        if (type == ChallengeType.cardFlipperGames || 
-            type == ChallengeType.ticTacToeDraws) {
-          newProgress = currentProgress + amount;
-        } else {
-          // For high score challenges, update if the new amount is higher
-          newProgress = amount > currentProgress ? amount : currentProgress;
-        }
-        
-        if (newProgress != currentProgress) {
-          updatedProgress[challenge.id] = newProgress;
-          hasChanges = true;
-        }
+    final updatedProgress = Map<String, int>.from(userProgress);
+    bool hasChanges = false;
+
+    for (var challenge in relevantChallenges) {
+      if (updatedProgress[challenge.id] == -1) continue;
+
+      final current = updatedProgress[challenge.id] ?? 0;
+      final next = type == ChallengeType.cardFlipperGames || type == ChallengeType.ticTacToeDraws
+          ? current + amount
+          : max(current, amount);
+
+      if (next != current) {
+        updatedProgress[challenge.id] = next;
+        hasChanges = true;
       }
-      
-      // Save the updated progress if changed
-      if (hasChanges) {
-        await _firestore.collection('users').doc(user.uid).update({
-          'challengeProgress': updatedProgress,
-        });
-        
-        setState(() {
-          userProgress = updatedProgress;
-        });
-      }
-    } catch (e) {
-      print('Error updating challenge progress: $e');
+    }
+
+    if (hasChanges) {
+      await _firestore.collection('users').doc(user.uid).update({
+        'challengeProgress': updatedProgress,
+      });
+
+      setState(() {
+        userProgress = updatedProgress;
+      });
     }
   }
 
@@ -275,63 +257,46 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    try {
-      // Verify the challenge is actually completed before claiming
-      final progress = await _calculateChallengeProgress(challenge);
-      if (progress < challenge.targetValue) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Challenge not completed yet!'))
-        );
-        return;
-      }
-      
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Reward Claimed!'),
-          content: Text('You earned ${challenge.reward} points!'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+    final progress = await _calculateChallengeProgress(challenge);
+    if (progress < challenge.targetValue) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Challenge not completed yet!')),
       );
-
-      final userDoc = _firestore.collection('users').doc(user.uid);
-
-      await _firestore.runTransaction((transaction) async {
-        final snapshot = await transaction.get(userDoc);
-        final currentScore = snapshot.data()?['score'] ?? 0;
-
-        transaction.update(userDoc, {
-          'score': currentScore + challenge.reward,
-          'challengeProgress.${challenge.id}': -1,
-        });
-
-        final historyRef = userDoc.collection('scoreHistory').doc();
-        transaction.set(historyRef, {
-          'score': challenge.reward,
-          'source': 'Challenge',
-          'timestamp': FieldValue.serverTimestamp(),
-          'details': 'Completed challenge: ${challenge.title}'
-        });
-      });
-
-      setState(() {
-        userProgress[challenge.id] = -1;
-      });
-
-      final allCompleted = activeChallenges.every((c) => 
-          (userProgress[c.id] ?? 0) == -1);
-
-      if (allCompleted) {
-        await _generateNewChallenges(user.uid);
-      }
-    } catch (e) {
-      print('Error claiming reward: $e');
+      return;
     }
+
+    if (userProgress[challenge.id] == -1) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Reward already claimed!')),
+      );
+      return;
+    }
+
+    final docRef = _firestore.collection('users').doc(user.uid);
+
+    await _firestore.runTransaction((txn) async {
+      final snap = await txn.get(docRef);
+      final currentScore = snap['score'] ?? 0;
+
+      txn.update(docRef, {
+        'score': currentScore + challenge.reward,
+        'challengeProgress.${challenge.id}': -1,
+      });
+
+      txn.set(docRef.collection('scoreHistory').doc(), {
+        'score': challenge.reward,
+        'source': 'Challenge',
+        'timestamp': FieldValue.serverTimestamp(),
+        'details': 'Completed: ${challenge.title}',
+      });
+    });
+
+    setState(() {
+      userProgress[challenge.id] = -1;
+    });
+
+    final allCompleted = activeChallenges.every((c) => userProgress[c.id] == -1);
+    if (allCompleted) await _generateNewChallenges(user.uid);
   }
 
   @override
@@ -342,6 +307,18 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
         centerTitle: true,
         backgroundColor: Colors.deepPurple,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () async {
+              setState(() => isLoading = true);
+              await _verifyAllChallenges();
+              setState(() => isLoading = false);
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text('Progress synced')));
+            },
+          )
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -350,25 +327,21 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Complete missions to earn rewards!',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
+                  Text('Complete missions to earn rewards!',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600])),
                   const SizedBox(height: 20),
                   Expanded(
                     child: ListView.builder(
                       itemCount: activeChallenges.length,
                       itemBuilder: (context, index) {
-                        final challenge = activeChallenges[index];
-                        final progress = userProgress[challenge.id] ?? 0;
-                        final isCompleted = progress >= challenge.targetValue;
-                        final isClaimed = progress == -1;
+                        final c = activeChallenges[index];
+                        final progress = userProgress[c.id] ?? 0;
+                        final complete = progress >= c.targetValue;
+                        final claimed = progress == -1;
 
                         return Card(
                           margin: const EdgeInsets.only(bottom: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 3,
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
@@ -378,39 +351,27 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      challenge.title,
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
+                                    Text(c.title,
+                                        style: const TextStyle(
+                                            fontSize: 18, fontWeight: FontWeight.bold)),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
                                         color: Colors.deepPurple[50],
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: Text(
-                                        '+${challenge.reward} pts',
-                                        style: const TextStyle(
-                                          color: Colors.deepPurple,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
+                                      child: Text('+${c.reward} pts',
+                                          style: const TextStyle(
+                                              color: Colors.deepPurple,
+                                              fontWeight: FontWeight.bold)),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                Text(
-                                  challenge.description,
-                                  style: TextStyle(color: Colors.grey[600]),
-                                ),
+                                Text(c.description, style: TextStyle(color: Colors.grey[600])),
                                 const SizedBox(height: 12),
                                 LinearProgressIndicator(
-                                  value: isClaimed
-                                      ? 1.0
-                                      : (isCompleted ? 1.0 : progress / challenge.targetValue.toDouble()),
+                                  value: claimed ? 1 : (complete ? 1 : progress / c.targetValue),
                                   backgroundColor: Colors.grey[200],
                                   valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
                                 ),
@@ -418,51 +379,44 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      isClaimed ? 'Claimed' : '$progress/${challenge.targetValue}',
-                                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
-                                    ),
-                                    if (!isClaimed)
+                                    Text(claimed
+                                        ? 'Claimed'
+                                        : '$progress/${c.targetValue}'),
+                                    if (!claimed)
                                       ElevatedButton(
-                                        onPressed: isCompleted 
-                                            ? () => _claimReward(challenge) 
+                                        onPressed: complete
+                                            ? () => _claimReward(c)
                                             : () async {
-                                                // Refresh the progress on button click
-                                                final newProgress = await _calculateChallengeProgress(challenge);
-                                                
+                                                final newProgress =
+                                                    await _calculateChallengeProgress(c);
                                                 if (newProgress != progress) {
                                                   setState(() {
-                                                    userProgress[challenge.id] = newProgress;
+                                                    userProgress[c.id] = newProgress;
                                                   });
-                                                  
-                                                  await _firestore.collection('users').doc(
-                                                      FirebaseAuth.instance.currentUser?.uid
-                                                  ).update({
-                                                    'challengeProgress.${challenge.id}': newProgress,
-                                                  });
+                                                 final uid = FirebaseAuth.instance.currentUser?.uid;
+if (uid != null) {
+  await _firestore
+      .collection('users')
+      .doc(uid)
+      .update({'challengeProgress.${c.id}': newProgress});
+}
+
                                                 }
-                                                
-                                                ScaffoldMessenger.of(context).showSnackBar(
-                                                  SnackBar(content: Text(
-                                                    newProgress >= challenge.targetValue
-                                                        ? 'Challenge completed! Claim your reward!'
-                                                        : 'Progress updated (${newProgress}/${challenge.targetValue})'
-                                                  ))
-                                                );
+
+                                                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                                                  content: Text(
+                                                    newProgress >= c.targetValue
+                                                        ? 'Challenge completed!'
+                                                        : 'Progress updated',
+                                                  ),
+                                                ));
                                               },
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.deepPurple,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(20),
-                                          ),
-                                        ),
                                         child: Text(
-                                          isCompleted ? 'Claim Reward' : 'Check Progress',
-                                          style: const TextStyle(color: Colors.white),
-                                        ),
+                                            complete ? 'Claim Reward' : 'Check Progress'),
                                       )
                                     else
-                                      Text('Reward Claimed', style: TextStyle(color: Colors.green)),
+                                      const Text('Reward Claimed',
+                                          style: TextStyle(color: Colors.green))
                                   ],
                                 ),
                               ],
@@ -471,7 +425,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> {
                         );
                       },
                     ),
-                  ),
+                  )
                 ],
               ),
             ),
@@ -504,16 +458,14 @@ class Challenge {
     required this.type,
   });
 
-  Map<String, dynamic> toMap() {
-    return {
-      'id': id,
-      'title': title,
-      'description': description,
-      'reward': reward,
-      'targetValue': targetValue,
-      'type': type.toString(),
-    };
-  }
+  Map<String, dynamic> toMap() => {
+        'id': id,
+        'title': title,
+        'description': description,
+        'reward': reward,
+        'targetValue': targetValue,
+        'type': type.toString(),
+      };
 
   factory Challenge.fromMap(Map<String, dynamic> map) {
     return Challenge(
@@ -522,7 +474,8 @@ class Challenge {
       description: map['description'],
       reward: map['reward'],
       targetValue: map['targetValue'],
-      type: ChallengeType.values.firstWhere((e) => e.toString() == map['type']),
+      type: ChallengeType.values
+          .firstWhere((e) => e.toString() == map['type']),
     );
   }
 }
