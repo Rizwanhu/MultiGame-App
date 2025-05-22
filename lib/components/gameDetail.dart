@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 import '../theme/theme_provider.dart';
-import '../Games/CardFlipper/CardFlipper.dart';  
-import '../Games/SnakeGame/SnakeGame.dart';  
-import '../Games/TicTacToe_AI/TicTacToe.dart' as tictactoe;  // Added prefix
-import '../Games/2048_Game/2048.dart' as game2048;  // Added prefix
+import '../Games/CardFlipper/CardFlipper.dart';
+import '../Games/SnakeGame/SnakeGame.dart';
+import '../Games/TicTacToe_AI/TicTacToe.dart' as tictactoe;
+import '../Games/2048_Game/2048.dart' as game2048;
 import 'package:app/audio_service.dart';
 
-class GameDetailScreen extends StatelessWidget {
+class GameDetailScreen extends StatefulWidget {
   final String gameName;
   final String gameImage;
 
@@ -19,6 +19,63 @@ class GameDetailScreen extends StatelessWidget {
   });
 
   @override
+  State<GameDetailScreen> createState() => _GameDetailScreenState();
+}
+
+class _GameDetailScreenState extends State<GameDetailScreen> {
+  VideoPlayerController? _videoController;
+
+  String get _videoAsset {
+    // You can map video files based on game name
+    switch (widget.gameName) {
+      case "Card Flipper":
+        return 'assets/videos/cf.mp4';
+      case "Snake Game":
+        return 'assets/videos/snake.mp4';
+      case "Tic Tac Toe":
+        return 'assets/videos/tic-tac-toe.mp4';
+      case "2048":
+        return 'assets/videos/2048.mp4';
+      default:
+        return 'assets/videos/default.mp4';
+    }
+  }
+
+  Future<void> _showHowToPlayDialog() async {
+  AudioService().playClickSound();
+
+  _videoController = VideoPlayerController.asset(_videoAsset);
+  await _videoController!.initialize();
+  _videoController!.play();
+
+  showDialog(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return AlertDialog(
+        title: const Text('How to Play'),
+        content: AspectRatio(
+          aspectRatio: _videoController!.value.aspectRatio,
+          child: VideoPlayer(_videoController!),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              _videoController?.pause();
+              Navigator.pop(dialogContext); // ✅ closes only the dialog
+            },
+            child: const Text('Close'),
+          ),
+        ],
+      );
+    },
+  ).then((_) {
+    _videoController?.dispose();
+    _videoController = null;
+  });
+}
+
+
+  @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final isDarkMode = themeProvider.themeMode == ThemeMode.dark;
@@ -27,19 +84,16 @@ class GameDetailScreen extends StatelessWidget {
       backgroundColor: isDarkMode ? Color(0xFF121212) : Color(0xFFDFF3FF),
       body: Stack(
         children: [
-          // Background image
           Positioned(
             top: 0,
             left: 0,
             right: 0,
             child: Image.asset(
-              gameImage,
+              widget.gameImage,
               fit: BoxFit.cover,
               height: MediaQuery.of(context).size.height * 0.35,
             ),
           ),
-
-          // Main rounded container
           Positioned(
             top: MediaQuery.of(context).size.height * 0.25,
             left: 0,
@@ -62,7 +116,7 @@ class GameDetailScreen extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    gameName,
+                    widget.gameName,
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -82,40 +136,9 @@ class GameDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // HOW TO PLAY (YouTube)
+                  // ✅ HOW TO PLAY (now opens local video)
                   ElevatedButton.icon(
-                    
-                    onPressed: () async {
-                      AudioService().playClickSound(); 
-                      const youtubeUrl = 'https://www.youtube.com'; 
-                      if (await canLaunchUrl(Uri.parse(youtubeUrl))) {
-                        await launchUrl(Uri.parse(youtubeUrl), mode: LaunchMode.externalApplication);
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Could not open YouTube link')),
-                        );
-                      // if (gameName == "Card Flipper") {
-                      //   final result = await Navigator.push(
-                      //     context,
-                      //     PageRouteBuilder(
-                      //       pageBuilder: (context, animation, secondaryAnimation) => CardFlipperGame(),
-                      //       transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      //         return SlideTransition(
-                      //           position: Tween<Offset>(
-                      //             begin: const Offset(1.0, 0.0),
-                      //             end: Offset.zero,
-                      //           ).animate(animation),
-                      //           child: child,
-                      //         );
-                      //       },
-                      //     ),
-                      //   );
-                      //   if (result != null) {
-                      //     print('Game Score: $result');
-                      //   }
-                      // }
-                      }
-                    },
+                    onPressed: _showHowToPlayDialog,
                     icon: Icon(Icons.ondemand_video, color: Colors.white),
                     label: Text(
                       "HOW TO PLAY",
@@ -135,63 +158,43 @@ class GameDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
 
-                  // PLAY GAME Button
+                  // ✅ PLAY GAME button
                   _buildOptionButton(
                     icon: Icons.videogame_asset,
                     label: "PLAY\nGAME",
                     onTap: () {
-  if (gameName == "Card Flipper") {
-    AudioService().playClickSound(); 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => CardFlipperGame()),
-    );
-  } else if (gameName == "Snake Game") {
-    AudioService().playClickSound(); 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => GamePage()),
-    );
-  } else if (gameName == "Tic Tac Toe") {
-    AudioService().playClickSound(); 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => tictactoe.MyApp()),
-    );
-  } else if (gameName == "2048") {
-    AudioService().playClickSound(); 
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => game2048.MyApp()),
-    );
-  } else {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Game Unavailable"),
-          content: Text("This game is not available currently."),
-          actions: [
-            TextButton(
-              child: Text("OK"),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        );
-      },
-    );
-  }
-},
-
+                      AudioService().playClickSound();
+                      if (widget.gameName == "Card Flipper") {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => CardFlipperGame()));
+                      } else if (widget.gameName == "Snake Game") {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => GamePage()));
+                      } else if (widget.gameName == "Tic Tac Toe") {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => tictactoe.MyApp()));
+                      } else if (widget.gameName == "2048") {
+                        Navigator.push(context, MaterialPageRoute(builder: (context) => game2048.MyApp()));
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text("Game Unavailable"),
+                            content: Text("This game is not available currently."),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text("OK"),
+                              )
+                            ],
+                          ),
+                        );
+                      }
+                    },
                     isDarkMode: isDarkMode,
                   ),
                   const SizedBox(height: 30),
 
-                  // Back Button
+                  // ✅ Back button
                   GestureDetector(
-                    onTap: () => 
-                    
-                    Navigator.pop(context),
+                    onTap: () => Navigator.pop(context),
                     child: Container(
                       width: 100,
                       padding: EdgeInsets.symmetric(vertical: 10),

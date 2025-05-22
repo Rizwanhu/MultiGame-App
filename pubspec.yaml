@@ -81,13 +81,12 @@ flutter:
 
   # Add assets section
   assets:
-    - assets/images/logo.png
+
     - assets/images/pingpong.png
     - assets/images/darts.png
     - assets/images/snake.png
     - assets/images/tic-tac-toe.png
     - assets/images/background_picture.jpg
-    - assets/images/splash1.png
     - assets/images/splash2.jpg
     - assets/images/2048_g2.jpeg
     - assets/images/coin.gif
@@ -95,8 +94,6 @@ flutter:
     - assets/images/island.jpg
     - assets/images/squid1.jpg
     - assets/images/robot.gif
-    - assets/images/giphy.gif
-    - assets/images/dragon.gif
     - assets/images/CardFlipGame/00.png
     - assets/images/CardFlipGame/01.png
     - assets/images/CardFlipGame/02.png
@@ -118,8 +115,12 @@ flutter:
     - assets/images/badges/silver.png
     - assets/images/badges/bronze.png
     - assets/images/icon.png
-    
 
+    - assets/videos/cf.mp4
+    - assets/videos/snake.mp4
+    - assets/videos/tic-tac-toe.mp4
+    - assets/videos/2048.mp4
+    
     - assets/audio/background_music.mp3
     - assets/audio/click.mp3
     
