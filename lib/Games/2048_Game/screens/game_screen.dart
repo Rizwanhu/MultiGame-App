@@ -8,6 +8,7 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../screen/main_screen.dart';
+import '../../../../screen/challenges.dart'; // Add this import
 
 class GameScreen extends StatelessWidget {
   @override
@@ -59,30 +60,45 @@ class GameWidgetState extends State<GameWidget> {
 
   void moveLeft() {
     setState(() {
+      int oldScore = _game.score;
       _game.moveLeft();
+      _trackScoreUpdate(oldScore);
       checkGameOver();
     });
   }
 
   void moveRight() {
     setState(() {
+      int oldScore = _game.score;
       _game.moveRight();
+      _trackScoreUpdate(oldScore);
       checkGameOver();
     });
   }
 
   void moveUp() {
     setState(() {
+      int oldScore = _game.score;
       _game.moveUp();
+      _trackScoreUpdate(oldScore);
       checkGameOver();
     });
   }
 
   void moveDown() {
     setState(() {
+      int oldScore = _game.score;
       _game.moveDown();
+      _trackScoreUpdate(oldScore);
       checkGameOver();
     });
+  }
+
+  void _trackScoreUpdate(int oldScore) {
+    // Track score progress for challenges when score increases
+    if (_game.score > oldScore && context.mounted) {
+      ChallengesScreen.trackEvent(context, ChallengeType.score2048, amount: _game.score);
+    }
   }
 
   void checkGameOver() {
@@ -106,16 +122,23 @@ class GameWidgetState extends State<GameWidget> {
             // Update main score
             transaction.update(docRef, {'score': currentScore + scoreEnd});
             
-            // Add score history with details
+            // Add score history with details - Fixed source name to match challenges
             final historyRef = docRef.collection('scoreHistory').doc();
             transaction.set(historyRef, {
               'score': scoreEnd,
-              'source': '2048 Game',
+              'source': '2048', // Changed from '2048 Game' to match challenge verification
               'timestamp': FieldValue.serverTimestamp(),
-              'details': 'Game Over Score: $scoreEnd | Best Score: $bestScore | ' +
-                        'New High Score: ${scoreEnd > bestScore ? "Yes" : "No"}'
+              'details': 'Final Score: $scoreEnd | Best Score: $bestScore'
             });
           });
+
+          // Track challenge events
+          if (mounted && context.mounted) {
+            // Track score achievement
+            if (scoreEnd > 0) {
+              ChallengesScreen.trackEvent(context, ChallengeType.score2048, amount: scoreEnd);
+            }
+          }
         }
         
         if (scoreEnd > bestScore) {

@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../services/auth_service.dart';
+import '../../screen/challenges.dart'; // Add this import
 import 'dart:async';
 import 'dart:math';
 
@@ -99,13 +100,18 @@ class _GamePageState extends State<Game> {
       // Update main score
       await docRef.update({'score': updatedScore});
       
-      // Add to score history
+      // Add to score history with corrected source name
       await docRef.collection('scoreHistory').add({
         'score': score,
-        'source': 'Snake Game',
+        'source': 'Snake', // Changed from 'Snake Game' to match challenge verification
         'timestamp': FieldValue.serverTimestamp(),
-        'details': 'Final Score: $score points | Snake Length: $length | Speed: ${speed.toStringAsFixed(2)}x'
+        'details': 'Final Score: $score points | Snake Length: $length'
       });
+
+      // Track final score for challenges
+      if (mounted && context.mounted && score > 0) {
+        ChallengesScreen.trackEvent(context, ChallengeType.snakeScore, amount: score);
+      }
     }
 
     if (!mounted) return;
@@ -190,6 +196,11 @@ class _GamePageState extends State<Game> {
       score += 5;
       changeSpeed();
       foodPosition = getRandomPositionWithinRange();
+      
+      // Track score progress for challenges in real-time
+      if (mounted && context.mounted) {
+        ChallengesScreen.trackEvent(context, ChallengeType.snakeScore, amount: score);
+      }
     }
   }
 

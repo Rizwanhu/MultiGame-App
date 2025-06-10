@@ -4,6 +4,7 @@ import 'card_board.dart';
 import '../../screen/main_screen.dart';
 import '../../services/auth_service.dart'; // Add this import
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../screen/challenges.dart'; // Add this import for ChallengesScreen
 
 
 class CardFlipperGame extends StatelessWidget {
@@ -102,6 +103,10 @@ class MyHomePageState extends State<MyHomePage> {
         score += 20;
         if (score > 200) score = 200;
       }
+      // Track score progress for challenges after each match
+      if (context.mounted && score > 0) {
+        ChallengesScreen.trackEvent(context, ChallengeType.cardFlipperScore, amount: score);
+      }
     });
   }
 
@@ -123,10 +128,18 @@ class MyHomePageState extends State<MyHomePage> {
         final historyRef = docRef.collection('scoreHistory').doc();
         transaction.set(historyRef, {
           'score': score,
-          'source': 'Card Flipper Game',
+          'source': 'CardFlipper',  // Changed to match challenge verification
           'timestamp': FieldValue.serverTimestamp(),
-          'details': 'Time taken: ${time}s | Score: $score | Max possible: 200'
+          'details': 'Score: $score | Time: ${time}s'
         });
+
+        // Track game completion for challenges
+        if (context.mounted) {
+          ChallengesScreen.trackEvent(context, ChallengeType.cardFlipperGames);
+          if (score > 0) {
+            ChallengesScreen.trackEvent(context, ChallengeType.cardFlipperScore, amount: score);
+          }
+        }
       });
     }
 
