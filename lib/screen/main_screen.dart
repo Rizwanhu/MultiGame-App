@@ -64,8 +64,6 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
     {"name": "Snake Game", "image": "assets/images/snake.png"},
     {"name": "Tic Tac Toe", "image": "assets/images/tic-tac-toe.png"},
     {"name": "2048", "image": "assets/images/2048_g2.jpeg"},
-    {"name": "Darts", "image": "assets/images/darts.png"},
-    {"name": "Squid Game", "image": "assets/images/squid.png"},
     {"name": "Runner Game", "image": "assets/images/runner.png"},
     {"name": "Quiz Game", "image": "assets/images/quiz.png"},
   ];
