@@ -26,7 +26,6 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
   VideoPlayerController? _videoController;
 
   String get _videoAsset {
-    // You can map video files based on game name
     switch (widget.gameName) {
       case "Card Flipper":
         return 'assets/videos/cf.mp4';
@@ -41,39 +40,54 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
     }
   }
 
+  // Add method to get game-specific description
+  String get _gameDescription {
+    switch (widget.gameName) {
+      case "Card Flipper":
+        return "Test your memory by flipping cards to find matching pairs.\nRemember the positions and match all cards to win!";
+      case "Snake Game":
+        return "Control the snake to eat food and grow longer.\nAvoid hitting walls to stay alive!";
+      case "Tic Tac Toe":
+        return "Classic strategy game for two players.\nGet three X's in a row to win against the AI!";
+      case "2048":
+        return "Slide numbered tiles to combine them and reach 2048.\nPlan your moves carefully to avoid getting stuck!";
+      default:
+        return "Stay Tuned. An exciting game awaits you.\n";
+    }
+  }
+
   Future<void> _showHowToPlayDialog() async {
-  AudioService().playClickSound();
+    AudioService().playClickSound();
 
-  _videoController = VideoPlayerController.asset(_videoAsset);
-  await _videoController!.initialize();
-  _videoController!.play();
+    _videoController = VideoPlayerController.asset(_videoAsset);
+    await _videoController!.initialize();
+    _videoController!.play();
 
-  showDialog(
-    context: context,
-    builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        title: const Text('How to Play'),
-        content: AspectRatio(
-          aspectRatio: _videoController!.value.aspectRatio,
-          child: VideoPlayer(_videoController!),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              _videoController?.pause();
-              Navigator.pop(dialogContext); // ✅ closes only the dialog
-            },
-            child: const Text('Close'),
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('How to Play'),
+          content: AspectRatio(
+            aspectRatio: _videoController!.value.aspectRatio,
+            child: VideoPlayer(_videoController!),
           ),
-        ],
-      );
-    },
-  ).then((_) {
-    _videoController?.dispose();
-    _videoController = null;
-  });
-}
-
+          actions: [
+            TextButton(
+              onPressed: () {
+                _videoController?.pause();
+                Navigator.pop(dialogContext); 
+              },
+              child: const Text('Close'),
+            ),
+          ],
+        );
+      },
+    ).then((_) {
+      _videoController?.dispose();
+      _videoController = null;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -124,8 +138,9 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                     ),
                   ),
                   SizedBox(height: 16),
+                  // Updated to use game-specific description
                   Text(
-                    "Move the paddle with your finger to keep the balls in play.\nIf you miss, your opponent scores a point.",
+                    _gameDescription,
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
@@ -136,7 +151,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                   ),
                   const SizedBox(height: 20),
 
-                  // ✅ HOW TO PLAY (now opens local video)
+                  // HOW TO PLAY button
                   ElevatedButton.icon(
                     onPressed: _showHowToPlayDialog,
                     icon: Icon(Icons.ondemand_video, color: Colors.white),
@@ -158,7 +173,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                   ),
                   const SizedBox(height: 16),
 
-                  // ✅ PLAY GAME button
+                  // PLAY GAME button
                   _buildOptionButton(
                     icon: Icons.videogame_asset,
                     label: "PLAY\nGAME",
@@ -192,7 +207,7 @@ class _GameDetailScreenState extends State<GameDetailScreen> {
                   ),
                   const SizedBox(height: 30),
 
-                  // ✅ Back button
+                  // Back button
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
                     child: Container(

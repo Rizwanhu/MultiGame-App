@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:flutter/foundation.dart'; // Add this import for kIsWeb
-import 'dart:io'; // Add this import for Platform
+import 'package:flutter/foundation.dart'; 
+import 'dart:io'; 
 import 'screen/logo_screen.dart';
 import 'theme/theme_provider.dart';
 import 'firebase_options.dart';
@@ -17,7 +17,7 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Only initialize Google Mobile Ads on supported platforms
+  
   if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
     await MobileAds.instance.initialize();
   }

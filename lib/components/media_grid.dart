@@ -13,7 +13,7 @@ class _DiagonalMediaGridState extends State<DiagonalMediaGrid> {
       builder: (context, constraints) {
         return ClipPath(
           clipper: _DiagonalClipper(index),
-          child: child, // ❌ Removed internal border to avoid gaps
+          child: child, 
         );
       },
     );
@@ -22,13 +22,13 @@ class _DiagonalMediaGridState extends State<DiagonalMediaGrid> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0), // Reduced from 16.0 to 8.0
+      padding: const EdgeInsets.symmetric(horizontal: 8.0), 
       child: Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black, width: 4), // Changed to black and increased width
+        border: Border.all(color: Colors.black, width: 4), 
         borderRadius: BorderRadius.circular(12),
       ),
-      clipBehavior: Clip.hardEdge, // ✅ Clips children to rounded border
+      clipBehavior: Clip.hardEdge, 
       child: AspectRatio(
         aspectRatio: 16 / 9,
         child: Stack(
@@ -65,21 +65,21 @@ class _DiagonalClipper extends CustomClipper<Path> {
 
     switch (index) {
       case 0:
-        // Left diagonal section
+        
         path.moveTo(0, 0);
         path.lineTo(w * 0.4, 0);
         path.lineTo(w * 0.15, h);
         path.lineTo(0, h);
         break;
       case 1:
-        // Middle diagonal section
+    
         path.moveTo(w * 0.4, 0);
         path.lineTo(w * 0.8, 0);
         path.lineTo(w * 0.55, h);
         path.lineTo(w * 0.15, h);
         break;
       case 2:
-        // Right diagonal section
+        
         path.moveTo(w * 0.8, 0);
         path.lineTo(w, 0);
         path.lineTo(w, h);
