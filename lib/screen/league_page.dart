@@ -35,11 +35,12 @@ class LeaguePage extends StatelessWidget {
           // Background image with blur
           Container(
             decoration: const BoxDecoration(
-              image: DecorationImage(
-                image: NetworkImage('https://cdn.pixabay.com/photo/2014/02/27/16/10/tree-276014_960_720.jpg'),
-                fit: BoxFit.cover,
-              ),
-            ),
+  image: DecorationImage(
+    image: AssetImage('assets/images/leaderboard.jpg'),
+    fit: BoxFit.cover,
+  ),
+),
+
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
               child: Container(color: Colors.black.withOpacity(0.3)),

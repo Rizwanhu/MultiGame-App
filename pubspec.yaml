@@ -115,6 +115,7 @@ flutter:
     - assets/images/badges/silver.png
     - assets/images/badges/bronze.png
     - assets/images/icon.png
+    - assets/images/leaderboard.jpg
 
     - assets/videos/cf.mp4
     - assets/videos/snake.mp4

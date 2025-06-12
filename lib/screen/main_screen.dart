@@ -320,6 +320,44 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                     ],
                   ),
                 ),
+                Container(
+                  height: 150,
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                  child: const DiagonalMediaGrid(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: GridView.count(
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1,
+                    children: games.map((game) {
+                      return GestureDetector(
+                        onTap: () {
+                          AudioService().playClickSound();
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => GameDetailScreen(
+                                gameName: game["name"],
+                                gameImage: game["image"],
+                              ),
+                            ),
+                          );
+                        },
+                        child: GameCard(
+                          gameName: game["name"],
+                          imagePath: game["image"],
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ),
+                // Moved Challenges container to the bottom
                 GestureDetector(
                   onTap: () {
                     AudioService().playClickSound();
@@ -375,12 +413,6 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                         Spacer(),
                         Row(
                           children: [
-                            // Image.asset(
-                            //   'assets/images/dragon.gif',
-                            //   width: 50,
-                            //   height: 40,
-                            //   fit: BoxFit.contain,
-                            // ),
                             Spacer(),
                             Icon(
                               Icons.arrow_forward,
@@ -391,43 +423,6 @@ class _MainScreenState extends AudioAwareScreenState<MainScreen> {
                         ),
                       ],
                     ),
-                  ),
-                ),
-                Container(
-                  height: 150,
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                  child: const DiagonalMediaGrid(),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: GridView.count(
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1,
-                    children: games.map((game) {
-                      return GestureDetector(
-                        onTap: () {
-                          AudioService().playClickSound();
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => GameDetailScreen(
-                                gameName: game["name"],
-                                gameImage: game["image"],
-                              ),
-                            ),
-                          );
-                        },
-                        child: GameCard(
-                          gameName: game["name"],
-                          imagePath: game["image"],
-                        ),
-                      );
-                    }).toList(),
                   ),
                 ),
               ],
